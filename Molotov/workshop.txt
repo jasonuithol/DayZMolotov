@@ -1,0 +1,34 @@
+A molotov cocktail for DayZ, made from things you already find: a glass bottle, some petrol and a rag. Light it, throw it, and whatever it hits burns.
+
+[h2]How it works[/h2]
+[list]
+[*] Make one: fill a glass bottle with at least 200 ml of petrol or diesel (from a jerry can), then combine it with a rag in your inventory. One rag from the stack goes into the neck.
+[*] Light it: hold the molotov with a lighter or matches anywhere in your inventory and choose "Light the rag". Lighting it with a lighter in your hands while the molotov lies on the ground works too.
+[*] Throw it. A lit molotov bursts on whatever it hits - ground, wall, car or person - into a pool of fire about 3.5 m across that burns for 20 seconds. Shooting a lit one bursts it too.
+[*] Don't hang on to it: 30 seconds after lighting it bursts on its own, at your feet if you're still holding it. A lit molotov can't be put away in your inventory.
+[*] The fire burns anyone standing in it, and clothing doesn't help: players lose about 10 health a second (plus shock), infected and animals 25 a second. Running straight through costs a little; standing in it is deadly.
+[*] Cars caught in the fire lose engine and fuel tank health; a car left in it for the whole burn ends up with a ruined engine.
+[*] An unlit molotov is just a heavy bottle: drop it or throw it and nothing happens.
+[*] Our own model (a vodka bottle with a petrol-soaked rag knotted round the neck, half full of fuel), built from vanilla textures.
+[/list]
+
+[h2]For server owners[/h2]
+[b]Install[/b]
+Paths are relative to the server's install folder (the one with DayZServer_x64.exe or DayZServer), shown here as DayZServer/.
+[olist]
+[*] Put the mod's folder in the server's install folder as DayZServer/@Molotov (with its subfolders addons/, keys/ and extras/).
+[*] Add it to the server's launch parameter, after your other mods: -mod=...;@Molotov
+[*] Copy the key file DayZServer/@Molotov/keys/tarbaby.bikey into DayZServer/keys/ (next to dayz.bikey). Without it, players using the mod are kicked for unsigned files. If you already run a mod signed with tarbaby.bikey (the Hand Truck mods are), you have it already.
+[*] Copy the loot entry DayZServer/@Molotov/extras/types_molotov.xml into a folder of your mission, for example DayZServer/mpmissions/dayzOffline.chernarusplus/molotov/types_molotov.xml (or into a folder you already use for modded types).
+[*] Register that file in your mission's DayZServer/mpmissions/dayzOffline.chernarusplus/cfgeconomycore.xml, inside <economycore>, using the folder name from step 4:
+[code]
+<ce folder='molotov'>
+    <file name='types_molotov.xml' type='types' />
+</ce>
+[/code]
+If you used a folder that already has a <ce> block, add just the <file ... /> line to it.
+[*] Restart the server.
+[/olist]
+Players only need to subscribe; the DayZ launcher loads the mod for them.
+
+Molotovs never spawn as loot: the entry only lets the economy keep crafted ones (like the vanilla torch, 4 hours on the ground). Instead of steps 4 and 5 you can paste the <type> entry from types_molotov.xml into your mission's db/types.xml. The bottles, petrol and rags are all vanilla loot, so nothing else is needed.
