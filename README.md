@@ -105,6 +105,11 @@ comes from a git tag (`workshop_publish.sh` adds it to the description and chang
    ```
 
    SteamCMD logging in knocks the desktop Steam client offline: don't publish while
-   playing, and click Steam > Go Online afterwards. Then check the tags (the launcher
-   ignores items without the Mod tag) with `tools/workshop_tags.py`.
+   playing, and click Steam > Go Online afterwards. Then set the tags (the launcher
+   ignores items without the Mod tag). Name them: without arguments `workshop_tags.py`
+   sets Mod Vehicle Mechanics.
+
+   ```sh
+   tools/workshop_tags.py Molotov Mod Weapon Equipment
+   ```
 4. Tell server admins to update and restart. The key stays `tarbaby.bikey`.
