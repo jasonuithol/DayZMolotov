@@ -3,7 +3,7 @@ A molotov cocktail for DayZ, made from things you already find: a glass bottle, 
 [h2]How it works[/h2]
 [list]
 [*] Make one: fill a glass bottle with at least 200 ml of petrol or diesel (from a jerry can), then combine it with a rag in your inventory. One rag from the stack goes into the neck.
-[*] Light it: hold the molotov with a lighter or matches anywhere in your inventory and choose "Light the rag". Lighting it with a lighter in your hands while the molotov lies on the ground works too.
+[*] Light it: hold the molotov with a lighter or matches anywhere in your inventory and choose [b]Light the rag[/b]. Lighting it with a lighter in your hands while the molotov lies on the ground works too.
 [*] Throw it. A lit molotov bursts on whatever it hits - ground, wall, car or person - into a pool of fire about 3.5 m across that burns for 20 seconds. Shooting a lit one bursts it too.
 [*] Don't hang on to it: 30 seconds after lighting it bursts on its own, at your feet if you're still holding it. A lit molotov can't be put away in your inventory.
 [*] The fire burns anyone standing in it, and clothing doesn't help: players lose about 10 health a second (plus shock), infected and animals 25 a second. Running straight through costs a little; standing in it is deadly.
