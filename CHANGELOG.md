@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2 - 2026-11-05
+
+- Fuel goes up. A car with fuel in the tank caught in a molotov fire blows up 3 s later
+  with the fuel pump explosion (its sound, and 50 health of blast damage within 5 m,
+  less further out), a fireball and smoke, and is wrecked. A working fuel pump caught in
+  the fire explodes the vanilla way.
+- What's left burns for 60 s, about 7 m across, and can set off another fuelled car
+  parked close by. Empty cars still just take the slow burn.
+
 ## 0.1 - 2026-11-03
 
 First release.

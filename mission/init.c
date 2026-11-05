@@ -42,6 +42,7 @@ class CustomMission: MissionServer
 	protected float m_DummyHealth;
 	protected float m_CarEngine;
 	protected ZombieBase m_Zombie;
+	protected Land_FuelStation_Feed m_Pump;
 
 	//! -missiontest: kit out an identity-less dummy, drop a lit molotov on it and another
 	//! on the car, check the fires and their damage, quit
@@ -85,7 +86,32 @@ class CustomMission: MissionServer
 			DropLit(m_Car.GetPosition() + "0 4 0");
 		if (m_Zombie)
 			DropLit(m_Zombie.GetPosition() + "0 2 0");
-		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(CheckFires, 6000, false);
+
+		// the nearest fuel pump: a fire beside it should set it off
+		array<Object> far = new array<Object>;
+		GetGame().GetObjectsAtPosition(Ground(SPOT), 2500, far, null);
+		float best = 1e9;
+		foreach (Object f : far)
+		{
+			Land_FuelStation_Feed pump = Land_FuelStation_Feed.Cast(f);
+			if (pump && vector.Distance(pump.GetPosition(), SPOT) < best)
+			{
+				best = vector.Distance(pump.GetPosition(), SPOT);
+				m_Pump = pump;
+			}
+		}
+		if (m_Pump)
+		{
+			Print("[MolotovTest] nearest fuel pump " + m_Pump.GetType() + " at " + m_Pump.GetPosition() + ", " + best + " m away, health " + m_Pump.GetHealth("", ""));
+			DropLit(Ground(m_Pump.GetPosition() + "1.2 0 0") + "0 2 0");
+		}
+		else
+		{
+			Print("[MolotovTest] FAIL no fuel pump within 2.5 km");
+		}
+		if (m_Car)
+			Print("[MolotovTest] car fuel " + m_Car.GetFluidFraction(CarFluid.FUEL));
+		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(CheckFires, 9000, false);   // the car and pump cook off for 3 s
 	}
 
 	void DropLit(vector at)
@@ -107,20 +133,35 @@ class CustomMission: MissionServer
 		array<Object> objs = new array<Object>;
 		GetGame().GetObjectsAtPosition(Ground(SPOT), 40, objs, null);
 		int fires;
+		int blasts;
 		int molotovs;
 		foreach (Object o : objs)
 		{
-			if (o.IsInherited(MolotovFire))
+			if (o.GetType() == "MolotovFire")
 				fires++;
+			else if (o.GetType() == "MolotovBlast")
+				blasts++;
 			else if (o.IsInherited(Molotov))
 				molotovs++;
 		}
-		Print("[MolotovTest] fires burning: " + fires + " (want 3), molotovs left: " + molotovs + " (want 3, the kit)");
+		Print("[MolotovTest] fires burning: " + fires + " (want 3), car blasts: " + blasts + " (want 1), molotovs left: " + molotovs + " (want 3, the kit)");
+		if (m_Pump)
+		{
+			array<Object> atPump = new array<Object>;
+			GetGame().GetObjectsAtPosition(m_Pump.GetPosition(), 6, atPump, null);
+			int infernos;
+			foreach (Object q : atPump)
+			{
+				if (q.GetType() == "MolotovInferno")
+					infernos++;
+			}
+			Print("[MolotovTest] pump ruined=" + m_Pump.IsRuined() + " (want 1), health " + m_Pump.GetHealth("", "") + ", infernos at it: " + infernos + " (want 1)");
+		}
 		Print("[MolotovTest] dummy health " + m_DummyHealth + " -> " + m_Dummy.GetHealth("", "Health"));
 		if (m_Zombie)
 			Print("[MolotovTest] infected health -> " + m_Zombie.GetHealth("", "Health") + " alive=" + m_Zombie.IsAlive());
 		if (m_Car)
-			Print("[MolotovTest] car engine " + m_CarEngine + " -> " + m_Car.GetHealth("Engine", "Health"));
+			Print("[MolotovTest] car engine " + m_CarEngine + " -> " + m_Car.GetHealth("Engine", "Health") + ", ruined=" + m_Car.IsRuined() + " (want 1), fuel " + m_Car.GetFluidFraction(CarFluid.FUEL));
 		GetGame().RequestExit(0);
 	}
 

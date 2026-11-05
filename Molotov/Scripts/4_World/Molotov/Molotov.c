@@ -12,6 +12,12 @@ class MolotovSettings
 	static const float CREATURE_DPS = 25;        //!< infected and animals
 	static const float FIRE_HEIGHT = 1.5;        //!< standing on a roof above it doesn't burn
 	static const float MIN_FUEL_ML = 200;        //!< fuel a bottle needs to become a molotov
+
+	// Fuel going up: a car with fuel in the tank, or a working fuel pump, caught in a fire
+	static const int COOKOFF_MS = 3000;          //!< from catching fire to the explosion
+	static const string BLAST_AMMO = "LandFuelFeed_Ammo";   //!< vanilla's fuel pump explosion
+	static const int INFERNO_MS = 60000;         //!< how long a wreck or pump burns afterwards
+	static const float INFERNO_RADIUS = 3.5;
 }
 
 class Molotov: Inventory_Base
@@ -186,26 +192,46 @@ class MolotovFire: House
 	void StartServer()
 	{
 		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(Burn, TICK_S * 1000, true);
-		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(GoOut, MolotovSettings.FIRE_MS, false);
-		Print("[Molotov] fire at " + GetPosition());
+		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(GoOut, Duration(), false);
+		Print("[Molotov] " + GetType() + " at " + GetPosition());
 	}
 
-	//! Every tick: burn players, infected and animals standing in the fire; every second
-	//! also the engine and fuel tank of any car parked in or over it
+	float Radius()
+	{
+		return MolotovSettings.FIRE_RADIUS;
+	}
+
+	int Duration()
+	{
+		return MolotovSettings.FIRE_MS;
+	}
+
+	//! Every tick: burn players, infected and animals standing in the fire, and set off any
+	//! fuelled car or working fuel pump in reach; every second also the engine and fuel tank
+	//! of any (empty) car parked in or over it
 	void Burn()
 	{
 		m_Ticks++;
 		bool carTick = m_Ticks % 2 == 0;
 		vector c = GetPosition();
-		float r = MolotovSettings.FIRE_RADIUS;
+		float r = Radius();
 		array<Object> near = new array<Object>;
 		GetGame().GetObjectsAtPosition(c, r + 2, near, null);
 		foreach (Object o : near)
 		{
+			Land_FuelStation_Feed pump = Land_FuelStation_Feed.Cast(o);
+			if (pump)
+			{
+				MolotovBlast.CookOff(pump);
+				continue;
+			}
+
 			CarScript car = CarScript.Cast(o);
 			if (car)
 			{
-				if (carTick)
+				if (MolotovBlast.HasFuel(car))
+					MolotovBlast.CookOff(car);
+				else if (carTick)
 				{
 					Print("[Molotov] burning " + car.GetType() + ": engine " + car.GetHealth("Engine", "Health") + ", fuel tank " + car.GetHealth("FuelTank", "Health"));
 					car.AddHealth("Engine", "Health", -car.GetMaxHealth("Engine", "Health") * MolotovSettings.CAR_DAMAGE_PER_S);
@@ -248,7 +274,7 @@ class MolotovFire: House
 		m_Flames = new array<Particle>;
 		m_Flames.Insert(ParticleManager.GetInstance().PlayInWorld(ParticleList.CAMP_NORMAL_FIRE, c));
 		m_Flames.Insert(ParticleManager.GetInstance().PlayInWorld(ParticleList.CAMP_NORMAL_SMOKE, c + "0 0.5 0"));
-		float r = MolotovSettings.FIRE_RADIUS * 0.7;
+		float r = Radius() * 0.7;
 		for (int i = 0; i < 6; i++)
 		{
 			float a = i * Math.PI2 / 6 + Math.RandomFloat(-0.3, 0.3);
@@ -280,5 +306,115 @@ class MolotovFire: House
 			m_Light.FadeOut(1);
 		if (m_Sound)
 			StopSoundSet(m_Sound);
+	}
+}
+
+//! A big fire that burns for a minute: what's left of a car or fuel pump that went up
+class MolotovInferno: MolotovFire
+{
+	override float Radius()
+	{
+		return MolotovSettings.INFERNO_RADIUS;
+	}
+
+	override int Duration()
+	{
+		return MolotovSettings.INFERNO_MS;
+	}
+
+	override void StartEffects()
+	{
+		vector c = GetPosition();
+		m_Flames = new array<Particle>;
+		m_Flames.Insert(ParticleManager.GetInstance().PlayInWorld(ParticleList.BONFIRE_FIRE, c));
+		m_Flames.Insert(ParticleManager.GetInstance().PlayInWorld(ParticleList.BONFIRE_SMOKE, c + "0 1 0"));
+		m_Flames.Insert(ParticleManager.GetInstance().PlayInWorld(ParticleList.SMOKE_GENERIC_WRECK, c + "0 0.5 0"));
+		float r = Radius() * 0.6;
+		for (int i = 0; i < 8; i++)
+		{
+			float a = i * Math.PI2 / 8 + Math.RandomFloat(-0.25, 0.25);
+			float d = r * Math.RandomFloat(0.5, 1.1);
+			vector p = c + Vector(Math.Cos(a) * d, 0, Math.Sin(a) * d);
+			p[1] = GetGame().SurfaceY(p[0], p[2]);
+			m_Flames.Insert(ParticleManager.GetInstance().PlayInWorld(ParticleList.CAMP_NORMAL_FIRE, p));
+		}
+
+		m_Light = ScriptedLightBase.CreateLight(FireplaceLight, c + "0 1.5 0");
+		m_Light.SetRadiusTo(25);
+		m_Light.SetBrightnessTo(2);
+		PlaySoundSetLoop(m_Sound, "HeavyFire_SoundSet", 0.2, 1.0);
+	}
+}
+
+//! A fuelled car going up: the fuel pump's explosion (blast damage and its sound come with
+//! the ammo), a fireball, then the inferno
+class MolotovBlast: MolotovInferno
+{
+	//! Cars and pumps already counting down, so each only goes up once
+	protected static ref array<Object> s_CookingOff = new array<Object>;
+
+	override void StartServer()
+	{
+		super.StartServer();
+		DamageSystem.ExplosionDamage(this, null, MolotovSettings.BLAST_AMMO, GetPosition() + "0 0.5 0", DamageType.EXPLOSION);
+	}
+
+	override void StartEffects()
+	{
+		vector c = GetPosition();
+		ParticleManager.GetInstance().PlayInWorld(ParticleList.EXPLOSION_LANDMINE, c + "0 0.5 0");
+		ParticleManager.GetInstance().PlayInWorld(ParticleList.EXPLOSION_LANDMINE, c + "0 1.5 0");
+		super.StartEffects();
+	}
+
+	//! A wreck is spent: a ruined car doesn't go up (again), whatever is left in its tank
+	static bool HasFuel(CarScript car)
+	{
+		return !car.IsRuined() && car.GetFluidFraction(CarFluid.FUEL) > 0;
+	}
+
+	//! Server: o (a fuelled car or a working fuel pump) has caught fire - it goes up shortly
+	static void CookOff(Object o)
+	{
+		if (s_CookingOff.Find(o) >= 0)
+			return;
+		Land_FuelStation_Feed pump = Land_FuelStation_Feed.Cast(o);
+		if (pump && pump.IsRuined())
+			return;
+		s_CookingOff.Insert(o);
+		Print("[Molotov] " + o.GetType() + " caught fire at " + o.GetPosition());
+		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(MolotovBlast.GoUp, MolotovSettings.COOKOFF_MS, false, o);
+	}
+
+	static void GoUp(Object o)
+	{
+		s_CookingOff.RemoveItem(o);
+		if (!o)
+			return;
+		vector pos = o.GetPosition();
+		pos[1] = GetGame().SurfaceY(pos[0], pos[2]);
+
+		Land_FuelStation_Feed pump = Land_FuelStation_Feed.Cast(o);
+		if (pump)
+		{
+			if (pump.IsRuined())
+				return;
+			// vanilla blows a pump up when it's destroyed (Land_FuelStation_Feed.EEKilled)
+			pump.SetHealth("", "", 0);
+			Print("[Molotov] fuel pump went up at " + pos + " ruined=" + pump.IsRuined());
+			GetGame().CreateObjectEx("MolotovInferno", pos, ECE_CREATEPHYSICS | ECE_UPDATEPATHGRAPH);
+			return;
+		}
+
+		CarScript car = CarScript.Cast(o);
+		if (!car || !HasFuel(car))
+			return;
+		car.LeakAll(CarFluid.FUEL);
+		car.Leak(CarFluid.FUEL, car.GetFluidCapacity(CarFluid.FUEL));
+		car.SetHealth("Engine", "Health", 0);
+		car.SetHealth("FuelTank", "Health", 0);
+		car.SetHealth("", "", 0);
+		Print("[Molotov] " + car.GetType() + " went up at " + pos + ", fuel left " + car.GetFluidFraction(CarFluid.FUEL));
+		GetGame().CreateObjectEx("MolotovBlast", pos, ECE_CREATEPHYSICS | ECE_UPDATEPATHGRAPH);
 	}
 }

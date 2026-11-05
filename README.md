@@ -25,6 +25,12 @@ petrol and a rag. Light it, throw it, and whatever it hits burns.
   | Infected, animals | 25 health |
   | Cars (engine and fuel tank) | 5% of their health |
 
+- **Fuel goes up.** A car with fuel in the tank caught in the fire explodes 3 s later (the
+  fuel pump explosion: 50 health of blast damage within 5 m, less further out) and is
+  wrecked; a working fuel pump in the fire explodes too. Either leaves a fire about 7 m
+  across burning for 60 s, which can set off the next fuelled car. Only empty cars get
+  the slow 5%/s burn.
+
 - **Unlit**, it's just a heavy bottle: dropping or throwing it does nothing.
 
 The model is our own: a vodka bottle with a petrol-soaked rag knotted round the neck and
@@ -79,8 +85,9 @@ bottles, rags, lighters, matches and jerry cans at their feet, a fuelled hatchba
 ahead and infected coming in from 40 m.
 
 From DayZMissions, `tools/test.sh molotov` runs it headless with `-missiontest`: it drops
-lit molotovs on a clothed survivor, an infected and the car, and logs `[MolotovTest]`
-lines with the fires burning and the damage done. `tools/run_server.sh molotov` and
+lit molotovs on a clothed survivor, an infected, the car and the nearest fuel pump (about
+720 m west, at 6889 3078), and logs `[MolotovTest]` lines with the fires burning, the
+damage done and whether the car and pump went up. `tools/run_server.sh molotov` and
 `tools/run_client.sh molotov` start it for real.
 
 ## Releasing
@@ -91,8 +98,8 @@ comes from a git tag (`workshop_publish.sh` adds it to the description and chang
 1. Date the version's entry in `CHANGELOG.md`, commit, tag and push:
 
    ```sh
-   git tag -a v0.1 -m "Molotov 0.1"
-   git push origin main v0.1
+   git tag -a v0.2 -m "Molotov 0.2"
+   git push origin main v0.2
    ```
 
 2. Build: `tools/build.sh`.

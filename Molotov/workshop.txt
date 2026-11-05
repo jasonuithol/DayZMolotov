@@ -7,7 +7,8 @@ A molotov cocktail for DayZ, made from things you already find: a glass bottle, 
 [*] Throw it. A lit molotov bursts on whatever it hits - ground, wall, car or person - into a pool of fire about 3.5 m across that burns for 20 seconds. Shooting a lit one bursts it too.
 [*] Don't hang on to it: 30 seconds after lighting it bursts on its own, at your feet if you're still holding it. A lit molotov can't be put away in your inventory.
 [*] The fire burns anyone standing in it, and clothing doesn't help: players lose about 10 health a second (plus shock), infected and animals 25 a second. Running straight through costs a little; standing in it is deadly.
-[*] Cars caught in the fire lose engine and fuel tank health; a car left in it for the whole burn ends up with a ruined engine.
+[*] Fuel goes up: a car with fuel in the tank caught in the fire explodes a few seconds later, like a fuel pump does, and is wrecked. Molotov a fuel pump and it explodes too. Keep 5 m back - the blast hurts. What's left burns for a minute and can set off the next fuelled car parked beside it.
+[*] An empty car caught in the fire only loses engine and fuel tank health; left in it for the whole burn it ends up with a ruined engine.
 [*] An unlit molotov is just a heavy bottle: drop it or throw it and nothing happens.
 [*] Our own model (a vodka bottle with a petrol-soaked rag knotted round the neck, half full of fuel), built from vanilla textures.
 [/list]

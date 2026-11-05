@@ -2,7 +2,7 @@ class CfgPatches
 {
 	class Molotov
 	{
-		units[] = {"Molotov", "MolotovFire"};
+		units[] = {"Molotov", "MolotovFire", "MolotovInferno", "MolotovBlast"};
 		weapons[] = {};
 		requiredVersion = 0.1;
 		requiredAddons[] = {"DZ_Data", "DZ_Scripts", "DZ_Gear_Drinks"};
@@ -68,4 +68,10 @@ class CfgVehicles
 		scope = 1;
 		model = "\DZ\data\lightpoint.p3d";
 	};
+
+	//! A big, long fire: a burning car wreck or fuel pump
+	class MolotovInferno: MolotovFire {};
+
+	//! A fuelled car going up: the fuel pump explosion, then an inferno
+	class MolotovBlast: MolotovInferno {};
 };
