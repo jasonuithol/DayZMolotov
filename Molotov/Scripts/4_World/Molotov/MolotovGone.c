@@ -337,7 +337,7 @@ class MolotovAshes: House
 	static const float MIN_APART = 1.5;      //!< a heap is about a metre across
 	static const int MAX_HEAPS = 8;
 
-	static const string HOT_RVMAT = "dz\\gear\\cooking\\data\\stoneground.rvmat";        //!< glowing embers
+	static const string HOT_RVMAT = "Molotov\\data\\ruin_ash_hot.rvmat";   //!< glowing embers (a burning fireplace's ash, brighter)
 	static const string COLD_RVMAT = "dz\\gear\\cooking\\data\\stonegroundnoemit.rvmat";
 
 	protected bool m_Hot;

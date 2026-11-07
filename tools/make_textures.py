@@ -6,6 +6,11 @@ the game is kept in this repo; the results are, in Molotov/data/):
                        warmed and blotched so it looks soaked in petrol
   molotov_rag.rvmat    the vanilla rag material with a stronger, tighter shine
 
+Also in Molotov/data/, made by hand (not by this script): ruin_char_hot.rvmat and
+ruin_ash_hot.rvmat, the vanilla glowing burnt-log and burning-fireplace-ash materials
+(dz\\gear\\cooking\\data\\log01burned.rvmat, stoneground.rvmat) with their emmisive
+turned up 4x so fresh ruins glow in daylight.
+
 Run: tools/make_textures.py   (needs Pillow, GE-Proton and DayZ Tools' ImageToPAA)
 Also leaves PNGs of the vanilla bottle/rag textures in build/vanilla_png/ for the Blender
 preview (MOLOTOV_PREVIEW_TEX=build/vanilla_png).

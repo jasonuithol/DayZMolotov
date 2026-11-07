@@ -40,8 +40,9 @@ PREVIEW_TEX = os.path.join(ROOT, "build", "vanilla_png")
 # swaps hot for burnt a few minutes after the fire goes out (MolotovGone).
 CHAR_TEX = ("dz\\gear\\cooking\\data\\log01burned_co.paa", "dz\\gear\\cooking\\data\\log01burnednoemit.rvmat")
 ASH_TEX = ("dz\\gear\\cooking\\data\\stoneground_co.paa", "dz\\gear\\cooking\\data\\stonegroundnoemit.rvmat")
-CHAR_HOT_TEX = (CHAR_TEX[0], "dz\\gear\\cooking\\data\\log01burned.rvmat")
-ASH_HOT_TEX = (ASH_TEX[0], "dz\\gear\\cooking\\data\\stoneground.rvmat")
+# the hot ones: the vanilla glowing materials with the glow turned up to show in daylight
+CHAR_HOT_TEX = (CHAR_TEX[0], "Molotov\\data\\ruin_char_hot.rvmat")
+ASH_HOT_TEX = (ASH_TEX[0], "Molotov\\data\\ruin_ash_hot.rvmat")
 CHAR_U = 0.82          # the bark runs along u 0..0.82 of the log texture; end grain beyond
 
 A3OB_MODULE = "bl_ext.user_default.Arma3ObjectBuilder"
