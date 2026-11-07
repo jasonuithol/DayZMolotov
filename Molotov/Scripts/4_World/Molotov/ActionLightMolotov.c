@@ -1,5 +1,5 @@
 //! Light the rag of the molotov in your hands with a lighter or matches (or anything else
-//! that can light things) from your inventory. The igniter uses a match / some fuel as usual.
+//! that can light it - not a hand drill) from your inventory. The igniter uses a match / some fuel as usual.
 class ActionLightMolotov: ActionSingleUseBase
 {
 	void ActionLightMolotov()
@@ -50,7 +50,7 @@ class ActionLightMolotov: ActionSingleUseBase
 		foreach (EntityAI e : items)
 		{
 			ItemBase ib = ItemBase.Cast(e);
-			if (ib && ib != molotov && !ib.IsRuined() && ib.CanIgniteItem(molotov))
+			if (ib && ib != molotov && !ib.IsRuined() && ib.CanIgniteItem(molotov) && molotov.CanBeIgnitedBy(ib))
 				return ib;
 		}
 		return null;

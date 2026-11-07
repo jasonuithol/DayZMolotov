@@ -2,10 +2,10 @@ class CfgPatches
 {
 	class Molotov
 	{
-		units[] = {"Molotov", "MolotovFire", "MolotovInferno", "MolotovBlast"};
+		units[] = {"Molotov", "MolotovFire", "MolotovInferno", "MolotovBlast", "MolotovFlames", "MolotovAshes", "MolotovSmoulder"};
 		weapons[] = {};
 		requiredVersion = 0.1;
-		requiredAddons[] = {"DZ_Data", "DZ_Scripts", "DZ_Gear_Drinks"};
+		requiredAddons[] = {"DZ_Data", "DZ_Scripts", "DZ_Gear_Drinks", "DZ_Gear_Cooking"};
 	};
 };
 
@@ -74,4 +74,40 @@ class CfgVehicles
 
 	//! A fuelled car going up: the fuel pump explosion, then an inferno
 	class MolotovBlast: MolotovInferno {};
+
+	//! Flames on top of a tall burning object (no damage of its own)
+	class MolotovFlames: MolotovInferno {};
+
+	//! A ruin cooling down: smoke and a faint glow (particles and a light), invisible itself
+	class MolotovSmoulder: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\data\lightpoint.p3d";
+	};
+
+	//! A heap of ash (and some burnt logs) where something burned away: the vanilla
+	//! fireplace model with only its ashes and burnt wood showing. Not stored, so it's gone
+	//! at restart along with the burnt-out object coming back
+	class MolotovAshes: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\dz\gear\cooking\Fireplace.p3d";
+		hiddenSelections[] = {"ashes", "inventory"};
+		hiddenSelectionsTextures[] = {"\dz\gear\cooking\data\stoneground_co.paa", ""};
+		hiddenSelectionsMaterials[] = {"\dz\gear\cooking\data\stonegroundnoemit.rvmat", ""};
+		class AnimationSources
+		{
+			class Ashes { source = "user"; animPeriod = 0.01; initPhase = 1; };
+			class Kindling { source = "user"; animPeriod = 0.01; initPhase = 1; };
+			class Sticks { source = "user"; animPeriod = 0.01; initPhase = 1; };
+			class Wood { source = "user"; animPeriod = 0.01; initPhase = 1; };
+			class BurntWood { source = "user"; animPeriod = 0.01; initPhase = 1; };
+			class Stone { source = "user"; animPeriod = 0.01; initPhase = 1; };
+			class StonesCircle { source = "user"; animPeriod = 0.01; initPhase = 1; };
+			class Tripod { source = "user"; animPeriod = 0.01; initPhase = 1; };
+			class Oven { source = "user"; animPeriod = 0.01; initPhase = 1; };
+			class LidOn { source = "user"; animPeriod = 0.01; initPhase = 1; };
+			class LidOff { source = "user"; animPeriod = 0.01; initPhase = 1; };
+		};
+	};
 };

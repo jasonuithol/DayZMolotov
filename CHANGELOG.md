@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.3 - 2026-11-07
+
+- Things burn. Hay and straw (bales, haystacks, the big straw stacks), pallets, woodpiles,
+  lumber piles, wooden sheds, outhouses, wooden guard sheds, the hunters' feeding racks,
+  feed shacks and deer stands, the wooden houses, trees and shrubs all catch from a
+  molotov's fire and burn as big fires for a minute, with no explosion. Big ones burn
+  along their whole length and up over the top: standing on or beside one is deadly.
+- Burnt down until the server restarts. When the fire is out the object is gone, on the
+  server and for every player (including ones who join later), and leaves:
+  - wooden houses: the matching Livonia house ruin (loose loot inside burns with it);
+  - the big wooden sheds, hunter's shack, straw stack and deer stands: their own burnt
+    ruin (charred posts, wall stubs, fallen beams, planks, ash);
+  - trees: a tall charred stump; shrubs and small things: a heap of ash;
+  - lumber piles (the loot event) burn away.
+  Fresh ruins, stumps and ash glow with embers and smoke for 4 minutes, then go cold.
+- Fire spreads. Anything close to a burning object may catch from it a few seconds later:
+  80% if it's touching the flames, down to 35% at the edge of their reach. Light rain
+  halves that, heavy rain stops it. At most 24 things lit by spreading burn at once, so a
+  forest fire creeps along rather than taking the whole map.
+- Every vehicle with fuel in it now goes up like a car: boats and motorbikes too. An
+  exploding vehicle wrecks what's in it: every item in its cargo loses 75% of its health.
+  Empty boats and bikes in the fire take engine damage like empty cars.
+- A lit molotov that hits an unlit fireplace lights it, as both lighter and kindling (its
+  rag goes in if the fireplace has no kindling).
+- A hand drill can no longer light a molotov.
+- Burning hurts: players in the flames flinch, cry out and see the red damage flash, and
+  a fatal burn holds them at the last of their health for a moment so the health display
+  has drained before the screen goes black.
+- The bottle smashing now has a sound (it was missing).
+
 ## 0.2 - 2026-11-05
 
 - Fuel goes up. A car with fuel in the tank caught in a molotov fire blows up 3 s later

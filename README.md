@@ -21,17 +21,33 @@ petrol and a rag. Light it, throw it, and whatever it hits burns.
 
   | Who | Per second |
   |---|---|
-  | Players | 10 health, 10 shock |
+  | Players | 10 health, 10 shock (they flinch, cry out, and the screen flashes red) |
   | Infected, animals | 25 health |
   | Cars (engine and fuel tank) | 5% of their health |
 
-- **Fuel goes up.** A car with fuel in the tank caught in the fire explodes 3 s later (the
-  fuel pump explosion: 50 health of blast damage within 5 m, less further out) and is
-  wrecked; a working fuel pump in the fire explodes too. Either leaves a fire about 7 m
-  across burning for 60 s, which can set off the next fuelled car. Only empty cars get
+- **Fuel goes up.** Any vehicle with fuel in it (car, boat, motorbike) caught in the fire
+  explodes 3 s later (the fuel pump explosion: 50 health of blast damage within 5 m, less
+  further out) and is wrecked, and every item in its cargo loses 75% of its health; a
+  working fuel pump in the fire explodes too. Either leaves a fire about 7 m across
+  burning for 60 s, which can set off the next fuelled vehicle. Only empty vehicles get
   the slow 5%/s burn.
 
-- **Unlit**, it's just a heavy bottle: dropping or throwing it does nothing.
+- **Things burn.** Hay and straw, pallets, woodpiles, lumber piles, wooden sheds,
+  outhouses, the hunters' feeding racks, feed shacks and deer stands, wooden houses,
+  trees and shrubs catch from the fire and burn for a minute without exploding. Big ones
+  burn along their whole length and over the top.
+- **Burnt down until restart.** When the fire's out the object is gone for everyone, and
+  leaves a Livonia ruin (wooden houses), our own burnt ruin (the big sheds, the hunter's
+  shack, the straw stack, the deer stands), a charred stump (trees) or a heap of ash
+  (shrubs and small things). Lumber piles burn away. Ruins, stumps and ash glow and smoke
+  for 4 minutes, then go cold. Loose loot inside a burning house burns with it.
+- **Fire spreads** to anything close: 80% if it's touching the flames, down to 35% at the
+  edge of their reach, a few seconds after the fire gets to it; half that in light rain,
+  none in heavy rain. At most 24 things lit by spreading burn at once.
+- **Fireplaces.** A lit molotov that hits an unlit fireplace lights it, as lighter and
+  kindling both.
+- **Unlit**, it's just a heavy bottle: dropping or throwing it does nothing. A hand drill
+  can't light it.
 
 The model is our own: a vodka bottle with a petrol-soaked rag knotted round the neck and
 fuel up to just under half, built from vanilla textures (nothing from other mods). Its
@@ -45,7 +61,8 @@ in `extras/types_molotov.xml` registered in the mission. The entry never spawns 
 (nominal 0, crafted only, like the vanilla torch); it only lets the economy keep crafted
 ones.
 
-The numbers live in `MolotovSettings` in
+Burnt map objects come back when the server restarts; ruins, stumps and ash aren't
+saved. The numbers live in `MolotovSettings` in
 [`Molotov/Scripts/4_World/Molotov/Molotov.c`](Molotov/Scripts/4_World/Molotov/Molotov.c);
 there is no settings file yet.
 
@@ -54,10 +71,12 @@ there is no settings file yet.
 | Path | What |
 |---|---|
 | `Molotov/` | The mod (PBO prefix `Molotov`): config, scripts, model, textures, Workshop files |
-| `Molotov/Scripts/4_World/Molotov/` | The molotov and its fire, the Light the rag action, the recipe |
-| `Molotov/Scripts/5_Mission/Molotov/` | The tilted inventory icon |
+| `Molotov/Scripts/4_World/Molotov/` | The molotov and its fire (`Molotov.c`: what burns, spreading, vehicles), the Light the rag action, the recipe, fireplaces, burning players (`MolotovPain.c`), burnt-down objects, ruins and ash (`MolotovGone.c`) |
+| `Molotov/Scripts/5_Mission/` | The tilted inventory icon; telling joining players what's burnt down |
+| `Molotov/ruins/` | Our burnt ruins and stumps, each hot (glowing) and cold |
 | `Molotov/extras/` | Loot entry for server admins (shipped beside `addons/`, not packed) |
 | `blender/build_molotov.py` | Builds the model, `models/molotov.blend` and both previews |
+| `blender/build_ruins.py` | Builds the burnt ruins and stumps, `models/ruins.blend` and a preview |
 | `tools/make_textures.py` | Makes the oily rag texture and material from the installed game's vanilla rag |
 | `tools/build.sh` | Binarizes the model and stages the mod in `build/Molotov` |
 | `mission/` | Test mission |
@@ -71,6 +90,7 @@ prefix (`~/.local/share/dayz-img2paa-prefix`), never DayZ Tools' own.
 ```sh
 tools/make_textures.py      # only when the rag texture or material changes
 MOLOTOV_PREVIEW_TEX=$PWD/build/vanilla_png blender --background --python blender/build_molotov.py
+blender --background --python blender/build_ruins.py   # only when the ruins change
 tools/build.sh
 ```
 
@@ -80,15 +100,19 @@ Packing and signing is done by DayZMissions' `tools/build_mod.py`
 ## Testing
 
 [`mission/`](mission) is linked into DayZMissions as `missions/molotov.chernarusplus`.
-Players spawn on the Chernogorsk quay with ready-made molotovs, empty and filled glass
-bottles, rags, lighters, matches and jerry cans at their feet, a fuelled hatchback parked
-ahead and infected coming in from 40 m.
+Players spawn on an empty stretch of the east-coast beach (13480 5700) with ready-made
+molotovs, lighters and matches at their feet, and everything that burns laid out along
+the beach in three rows: hay, straw, pallets, a lumber pile, the wooden sheds, the
+hunters' stands and shack, and four wooden houses.
 
-From DayZMissions, `tools/test.sh molotov` runs it headless with `-missiontest`: it drops
-lit molotovs on a clothed survivor, an infected, the car and the nearest fuel pump (about
-720 m west, at 6889 3078), and logs `[MolotovTest]` lines with the fires burning, the
-damage done and whether the car and pump went up. `tools/run_server.sh molotov` and
-`tools/run_client.sh molotov` start it for real.
+From DayZMissions, `tools/test.sh molotov` runs it headless with `-missiontest`. It
+burns all of that plus, on the Chernogorsk quay, a clothed survivor, an infected, a
+fuelled hatchback and boat, two fireplaces and the nearest map pump, hay, shed, lumber
+pile and straw stack, and a tree and shrub near the beach. It logs `[MolotovTest]` lines:
+the fires, the damage, what went up, fire spreading between two hay bales (chance pinned
+to 1), that everything burnt is gone a minute on, and that the ruins cool. Setup and
+checks take about 3 minutes. `tools/run_server.sh molotov` and `tools/run_client.sh
+molotov` start it for real.
 
 ## Releasing
 
@@ -98,8 +122,8 @@ comes from a git tag (`workshop_publish.sh` adds it to the description and chang
 1. Date the version's entry in `CHANGELOG.md`, commit, tag and push:
 
    ```sh
-   git tag -a v0.2 -m "Molotov 0.2"
-   git push origin main v0.2
+   git tag -a v0.3 -m "Molotov 0.3"
+   git push origin main v0.3
    ```
 
 2. Build: `tools/build.sh`.

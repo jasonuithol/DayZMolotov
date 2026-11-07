@@ -4,6 +4,7 @@
 # build/Molotov as @Molotov (~/Projects/DayZMissions/mods/Molotov is a symlink to it).
 #
 #   blender --background --python blender/build_molotov.py   # after changing the model
+#   blender --background --python blender/build_ruins.py     # after changing the ruins
 #   tools/build.sh
 #
 # Binarize runs under GE-Proton in its own prefix (shared with HandCart's img2paa.sh; never
@@ -39,7 +40,7 @@ if [ -f "$STAGE/workshop.id" ] && [ ! -f "$ROOT/Molotov/workshop.id" ]; then
 fi
 rm -rf "$STAGE"
 cp -r "$ROOT/Molotov" "$STAGE"
-rm -f "$STAGE/model.cfg"   # baked into the binarized models
+find "$STAGE" -name model.cfg -delete   # baked into the binarized models
 while IFS= read -r -d '' src; do
 	rel="${src#"$ROOT/Molotov/"}"
 	out="$WORK/O/Molotov/$rel"
