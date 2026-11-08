@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1 - 2026-11-09
+
+- Molotovs can also be made from Nasdara's glass bottle (the game's `WineBottle`, also
+  called "Glass Bottle" in game); the recipe only took the vodka-style one.
+
 ## 0.4 - 2026-11-08
 
 - Exploding cars leave wrecks: each vanilla car (Niva, Golf, Olga, Sarka, Humvee, M3S) is

@@ -20,6 +20,7 @@ class CraftMolotov: RecipeBase
 		m_MaxQuantityIngredient[1] = -1;
 
 		InsertIngredient(0, "GlassBottle");
+		InsertIngredient(0, "WineBottle"); // Nasdara's "Glass Bottle" is this class
 		m_IngredientAddHealth[0] = 0;
 		m_IngredientSetHealth[0] = -1;
 		m_IngredientAddQuantity[0] = 0;
