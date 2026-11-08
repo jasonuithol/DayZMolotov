@@ -264,6 +264,50 @@ class MolotovSunk: House
 		GetGame().ObjectDelete(boat);
 	}
 
+	//! Server: a motorbike that's gone up flies apart - its wheels, fenders, exhaust and
+	//! shields every which way - leaving nothing but the fire
+	static void Scatter(MotorbikeScript bike)
+	{
+		if (!bike)
+			return;
+		string model = "Motorbike_01";
+		array<string> parts = {"Fender", "Exhaust"};
+		if (bike.IsKindOf("Motorbike_02_ColorBase"))
+		{
+			model = "Motorbike_02";
+			parts = {"FenderFront", "FenderRear", "Exhaust"};
+		}
+		// the fitted ones only: wheels and shields come off
+		array<string> fitted = {"Wheel_1", "Wheel_2", "ShieldFront", "ShieldLeft", "ShieldRight"};
+		foreach (string f : fitted)
+		{
+			if (bike.FindAttachmentBySlotName(model + "_" + f))
+			{
+				if (f == "ShieldFront")
+					f = "Windshield";
+				parts.Insert(f);
+			}
+		}
+		vector pos = bike.GetPosition();
+		vector fwd = bike.GetDirection();
+		fwd[1] = 0;
+		fwd.Normalize();
+		vector centre = pos + "0 0.7 0";
+		float spin = Math.RandomFloat(0, 360);
+		string flung = "";
+		for (int i = 0; i < parts.Count(); i++)
+		{
+			vector dir = vector.RotateAroundZeroDeg(fwd, vector.Up, spin + 360 * i / parts.Count() + Math.RandomFloat(-20, 20));
+			vector restOri = Vector(Math.RandomFloat(-180, 180), Math.RandomFloat(-6, 6), Math.RandomFloat(-6, 6));
+			if (parts[i].IndexOf("Wheel") == 0)
+				restOri[2] = 90;   // a wheel lies flat
+			if (Throw("MolotovDebris_" + model + "_" + parts[i], centre + dir * 0.3, dir, Math.RandomFloat(7, 11), restOri))
+				flung += " " + parts[i];
+		}
+		Print("[Molotov] " + bike.GetType() + " flew apart:" + flung);
+		GetGame().ObjectDelete(bike);
+	}
+
 	//! Server: a type blown off from start along dir at 45 degrees and speed, coming to rest
 	//! (oriented restOri) where it lands - on the ground, or the bottom if that's water
 	static MolotovSunk Throw(string type, vector start, vector dir, float speed, vector restOri)
@@ -338,3 +382,17 @@ class MolotovDebris_Offroad_02_Wheel: MolotovSunk {}
 class MolotovDebris_Offroad_02_Hood: MolotovSunk {}
 class MolotovDebris_Truck_01_Wheel: MolotovSunk {}
 class MolotovDebris_Truck_01_Hood: MolotovSunk {}
+
+//! A motorbike flying apart (MolotovSunk.Scatter)
+class MolotovDebris_Motorbike_01_Wheel_1: MolotovSunk {}
+class MolotovDebris_Motorbike_01_Wheel_2: MolotovSunk {}
+class MolotovDebris_Motorbike_01_Fender: MolotovSunk {}
+class MolotovDebris_Motorbike_01_Exhaust: MolotovSunk {}
+class MolotovDebris_Motorbike_02_Wheel_1: MolotovSunk {}
+class MolotovDebris_Motorbike_02_Wheel_2: MolotovSunk {}
+class MolotovDebris_Motorbike_02_FenderFront: MolotovSunk {}
+class MolotovDebris_Motorbike_02_FenderRear: MolotovSunk {}
+class MolotovDebris_Motorbike_02_Exhaust: MolotovSunk {}
+class MolotovDebris_Motorbike_02_Windshield: MolotovSunk {}
+class MolotovDebris_Motorbike_02_ShieldLeft: MolotovSunk {}
+class MolotovDebris_Motorbike_02_ShieldRight: MolotovSunk {}

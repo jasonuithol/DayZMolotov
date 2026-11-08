@@ -180,11 +180,13 @@ def ash_bed(mesh, w, d, height_of, mat, n=24):
             f.smooth = True
 
 
-def plank_litter(mesh, w, d, count, mat, z0=0.04):
-    """Charred planks lying about, mostly within the footprint"""
+def plank_litter(mesh, w, d, count, mat, z0=0.04, ground=None):
+    """Charred planks lying about, mostly within the footprint (on ground(x, y) if given)"""
     for _ in range(count):
         length = random.uniform(0.7, 2.4)
         c = Vector((random.uniform(-w / 2, w / 2) * 0.9, random.uniform(-d / 2, d / 2) * 0.9, z0 + 0.02))
+        if ground:
+            c.z = ground(c.x, c.y) + 0.02
         rot = Euler((random.uniform(-0.06, 0.06), random.uniform(-0.12, 0.12), random.uniform(0, math.pi)))
         mesh.box(c, (length, random.uniform(0.10, 0.18), 0.03), rot, mat)
 
@@ -199,7 +201,16 @@ def post(mesh, geo, x, y, height, thick, mat, tilt=0.12):
 
 def build_shed(w, d):
     vis, geo = Mesh(), []
-    ash_bed(vis, w * 1.35, d * 1.35, lambda u, v: 0.02 + 0.05 * random.random() * max(0, 1 - u * u - v * v), 1)
+    # the ash heaped up in a mound: 45 cm in the middle, down to the ground at the edges -
+    # a flat sheet of it disappeared into bumpy ground and grass
+    aw, ad = w * 1.35, d * 1.35
+
+    def mound(u, v):
+        return 0.03 + 0.45 * max(0.0, 1 - u * u - v * v) ** 0.8
+
+    def ground(x, y):
+        return mound(x / (aw / 2), y / (ad / 2))
+    ash_bed(vis, aw, ad, lambda u, v: mound(u, v) + 0.06 * random.random() * max(0, 1 - u * u - v * v), 1)
     ix, iy = w / 2 - 0.1, d / 2 - 0.1
     for sx in (-1, 1):
         for sy in (-1, 1):
@@ -221,10 +232,11 @@ def build_shed(w, d):
     for _ in range(2):
         length = max(w, d) * random.uniform(0.6, 0.85)
         c = Vector((random.uniform(-w, w) * 0.15, random.uniform(-d, d) * 0.15, 0.09))
+        c.z = ground(c.x, c.y) + 0.04   # resting on the heap
         rot = Euler((0, random.uniform(-0.05, 0.05), random.uniform(0, math.pi)))
         vis.box(c, (length, 0.13, 0.13), rot, 0)
         geo.append((c, (length, 0.13, 0.13), rot))
-    plank_litter(vis, w, d, int(w * d * 0.9), 0)
+    plank_litter(vis, w, d, int(w * d * 0.9), 0, ground=ground)
     return vis, geo
 
 

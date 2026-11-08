@@ -190,6 +190,26 @@ class MolotovGone
 				houseBase = pos;
 				houseBase[1] = GetGame().SurfaceY(pos[0], pos[2]) - 0.15;
 			}
+			else if (own)
+			{
+				// a shed's box can run below its floor, into the ground: ours sit on the
+				// ground, at its average height over the footprint (corners and middle)
+				float ground = GetGame().SurfaceY(houseBase[0], houseBase[2]);
+				for (int c = 0; c < 4; c++)
+				{
+					float cx = hlo[0];
+					float cz = hlo[2];
+					if (c & 1)
+						cx = hhi[0];
+					if (c & 2)
+						cz = hhi[2];
+					vector corner = o.ModelToWorld(Vector(cx, 0, cz));
+					ground += GetGame().SurfaceY(corner[0], corner[2]);
+				}
+				ground = ground / 5;
+				if (ground > houseBase[1])
+					houseBase[1] = ground;
+			}
 			vector ruinBase = probe.ModelToWorld(Vector((rlo[0] + rhi[0]) * 0.5, rlo[1], (rlo[2] + rhi[2]) * 0.5));
 			delta = houseBase - ruinBase;
 		}

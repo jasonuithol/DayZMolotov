@@ -375,6 +375,7 @@ class CustomMission: MissionServer
 	protected Land_FuelStation_Feed m_Pump;
 	protected BoatScript m_Boat;
 	protected vector m_BoatAt;
+	protected vector m_BikeAt;
 	protected FireplaceBase m_WoodFire;
 	protected ref map<string, Object> m_Statics = new map<string, Object>;   //!< only while searching: hay has no stable script object
 	protected ref map<string, vector> m_StaticAt = new map<string, vector>;
@@ -695,6 +696,10 @@ class CustomMission: MissionServer
 			DropLit(m_Car.GetPosition() + "0 4 0");
 		if (m_Zombie)
 			DropLit(m_Zombie.GetPosition() + "0 2 0");
+		// a motorbike across the road from the car, to fly apart
+		m_BikeAt = Ground(SPOT + ALONG * 10 - Side() * 6);
+		SpawnCarAt(m_BikeAt, ALONG, "Motorbike_02_Red");
+		DropLit(m_BikeAt + "0 3 0");
 
 		// the test sites Setup found: a fire beside each
 		foreach (string k, vector at : m_ThrowAt)
@@ -776,7 +781,7 @@ class CustomMission: MissionServer
 			else if (o.IsInherited(Molotov))
 				molotovs++;
 		}
-		Print("[MolotovTest] fires burning near the spawn: " + fires + " (want 6: dummy, car, infected, 2 fireplaces, boat), blasts: " + blasts + " (want 2: car, boat), molotovs left: " + molotovs + " (want 13: 12 in the kit, an unlit one by the fireplaces)");
+		Print("[MolotovTest] fires burning near the spawn: " + fires + " (want 7: dummy, car, motorbike, infected, 2 fireplaces, boat), blasts: " + blasts + " (want 3: car, motorbike, boat), molotovs left: " + molotovs + " (want 13: 12 in the kit, an unlit one by the fireplaces)");
 		float pinned = MolotovIgnition.s_ChanceOverride;
 		MolotovIgnition.s_ChanceOverride = -1;
 		Print("[MolotovTest] spread chance at the edge of a fire's reach: dry " + MolotovIgnition.SpreadChance(0) + " (want 0.35), light rain " + MolotovIgnition.SpreadChance(0.2) + " (want 0.175), heavy rain " + MolotovIgnition.SpreadChance(0.7) + " (want 0)");
@@ -791,7 +796,7 @@ class CustomMission: MissionServer
 		GetGame().GetObjectsAtPosition(m_BoatAt, 40, sunk, null);
 		foreach (Object so : sunk)
 		{
-			if (MolotovSunk.Cast(so) || so.GetType() == "MolotovBlast")
+			if (so.GetType().IndexOf("MolotovBoat") == 0 || so.GetType() == "MolotovBlast")
 			{
 				vector sp = so.GetPosition();
 				Print("[MolotovTest] " + so.GetType() + " at " + sp + ", " + vector.Distance(sp, m_BoatAt) + " m from the boat, seabed " + GetGame().SurfaceY(sp[0], sp[2]) + ", sea " + GetGame().SurfaceGetSeaLevel() + " (want the hull and engine on the seabed, the engine some 10-15 m off; the blast on the sea)");
@@ -836,10 +841,22 @@ class CustomMission: MissionServer
 		GetGame().GetObjectsAtPosition(m_CarAt, 20, near, null);
 		foreach (Object db : near)
 		{
-			if (db.GetType().IndexOf("MolotovDebris_") == 0)
+			if (db.GetType().IndexOf("MolotovDebris_") == 0 && db.GetType().IndexOf("Motorbike") < 0)
 				Print("[MolotovTest] " + db.GetType() + " landed " + vector.Distance(db.GetPosition(), m_CarAt) + " m from the car, " + (db.GetPosition()[1] - GetGame().SurfaceY(db.GetPosition()[0], db.GetPosition()[2])) + " m over the ground (want a wheel and a hood, ~8 m off)");
 		}
 		Print("[MolotovTest] car gone=" + (m_Car == null) + " (want 1), wreck where it stood:" + wrecks + " (want one), its load on the ground " + onGround + " (want " + m_CarLoad.Count() + ")");
+		near.Clear();
+		GetGame().GetObjectsAtPosition(m_BikeAt, 25, near, null);
+		string bits = "";
+		int bikes;
+		foreach (Object bo : near)
+		{
+			if (bo.GetType().IndexOf("MolotovDebris_Motorbike") == 0)
+				bits += " " + bo.GetType().Substring(14, bo.GetType().Length() - 14) + "@" + vector.Distance(bo.GetPosition(), m_BikeAt);
+			if (bo.IsInherited(MotorbikeScript))
+				bikes++;
+		}
+		Print("[MolotovTest] motorbike: " + bikes + " left (want 0), bits flown:" + bits + " (want 8, some 5-12 m off)");
 		if (m_Bystander)
 			Print("[MolotovTest] bystander 5 m from the car: health " + m_Bystander.GetHealth("", "Health") + " (want well under 100: the blast reaches them)");
 		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(CheckLater, 58000, false);

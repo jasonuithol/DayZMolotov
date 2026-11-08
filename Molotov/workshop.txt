@@ -7,7 +7,8 @@ A molotov cocktail for DayZ, made from things you already find: a glass bottle, 
 [*] Throw it. A lit molotov bursts on whatever it hits - ground, wall, car or person - into a pool of fire about 3.5 m across that burns for 20 seconds. Shooting a lit one bursts it too.
 [*] Don't hang on to it: 30 seconds after lighting it bursts on its own, at your feet if you're still holding it. A lit molotov can't be put away in your inventory.
 [*] The fire burns anyone standing in it, and clothing doesn't help: players lose about 10 health a second (plus shock), infected and animals 25 a second. Running straight through costs a little; standing in it is deadly.
-[*] Fuel goes up: any vehicle with fuel in it - car, boat or motorbike - caught in the fire explodes a few seconds later, like a fuel pump does, and is wrecked, and everything in its cargo is badly damaged. Molotov a fuel pump and it explodes too. Keep 5 m back - the blast hurts. What's left burns for a minute and can set off the next fuelled vehicle beside it.
+[*] Fuel goes up: any vehicle with fuel in it - car, boat or motorbike - caught in the fire explodes a few seconds later, like a fuel pump does. Molotov a fuel pump and it explodes too. Keep well back - the blast hurts, badly within a couple of metres. What's left burns for a minute and can set off the next fuelled vehicle beside it.
+[*] A car that goes up becomes a burnt-out wreck of the same model and colour, its cargo thrown out around it, badly damaged; a burnt wheel and the hood fly off. A boat loses its engine, blown off to splash down and sink, and its burnt hull sinks. A motorbike flies apart in pieces, leaving nothing but the fire.
 [*] An empty vehicle caught in the fire only loses engine (and fuel tank) health; left in it for the whole burn it ends up with a ruined engine.
 [*] Things burn: hay and straw, pallets, woodpiles, lumber piles, wooden sheds, outhouses, the hunters' feeding racks, feed shacks and deer stands, wooden houses, trees and shrubs catch fire and burn for a minute. Standing on or beside a burning stack or shed is deadly.
 [*] They burn down: when the fire's out they're gone - for every player, until the server restarts - leaving a burnt-out ruin (wooden houses, big sheds, the hunter's shack, straw stacks, deer stands), a charred stump (trees) or a heap of ash. Fresh ruins glow with embers and smoke for a few minutes. Loose loot inside a burning house burns with it.
@@ -37,6 +38,6 @@ If you used a folder that already has a <ce> block, add just the <file ... /> li
 [/olist]
 Players only need to subscribe; the DayZ launcher loads the mod for them.
 
-Burnt-down map objects come back at the next server restart; nothing about them is saved.
+Burnt-down map objects come back at the next server restart; nothing about them is saved. Wrecks and flying debris are gone at restart too (the economy respawns vehicles as usual); thrown-out cargo stays like any dropped loot.
 
 Molotovs never spawn as loot: the entry only lets the economy keep crafted ones (like the vanilla torch, 4 hours on the ground). Instead of steps 4 and 5 you can paste the <type> entry from types_molotov.xml into your mission's db/types.xml. The bottles, petrol and rags are all vanilla loot, so nothing else is needed.

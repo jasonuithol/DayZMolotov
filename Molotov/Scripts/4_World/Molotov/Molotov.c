@@ -602,6 +602,9 @@ class MolotovIgnition
 		BlastPeople(t, pos + "0 1 0");
 		if (boat)
 			GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(MolotovSunk.Sink, 200, false, boat);
+		MotorbikeScript bike = MotorbikeScript.Cast(t);
+		if (bike)
+			GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(MolotovSunk.Scatter, 200, false, bike);
 		if (car && MolotovWreck.For(car) != "")
 			GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(MolotovWreck.Swap, 200, false, car);
 	}

@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4 - unreleased
+## 0.4 - 2026-11-08
 
 - Exploding cars leave wrecks: each vanilla car (Niva, Golf, Olga, Sarka, Humvee, M3S) is
   swapped for vanilla's abandoned wreck of the same model and colour. What was in its
@@ -10,10 +10,17 @@
 - Exploding boats: the outboard motor is blown off the stern at 45 degrees, splashes down
   and sinks; the hull, burnt and burst, sinks where the boat was; the fire burns on the
   water. Anything in the boat goes in the water.
+- Exploding motorbikes fly apart: their burnt wheels, fenders, exhaust and (on the
+  Motorbike_02) windshield and side shields are flung every which way, 7-13 m, leaving
+  nothing but the fire. The bits are gone at restart.
 - The blast hurts: up to 60 health and shock within 2 m of a vehicle or fuel pump going
   up, falling to nothing at 8 m (infected and animals take 2.5x), with the flinch, cry and
   red flash. The vanilla explosion behind it barely touched players.
 - Fires on the sea burn on its surface (they could end up on the seabed).
+- The burnt sheds and the hunter's shack leave a proper heap of ash, about 45 cm high in
+  the middle, with the fallen beams and planks lying on it; the flat layer of ash
+  disappeared into bumpy ground and grass. Our ruins sit on the ground's average height
+  over the footprint.
 
 ## 0.3 - 2026-11-07
 

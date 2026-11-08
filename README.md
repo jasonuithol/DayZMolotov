@@ -26,11 +26,18 @@ petrol and a rag. Light it, throw it, and whatever it hits burns.
   | Cars (engine and fuel tank) | 5% of their health |
 
 - **Fuel goes up.** Any vehicle with fuel in it (car, boat, motorbike) caught in the fire
-  explodes 3 s later (the fuel pump explosion: 50 health of blast damage within 5 m, less
-  further out) and is wrecked, and every item in its cargo loses 75% of its health; a
-  working fuel pump in the fire explodes too. Either leaves a fire about 7 m across
-  burning for 60 s, which can set off the next fuelled vehicle. Only empty vehicles get
-  the slow 5%/s burn.
+  explodes 3 s later, as does a working fuel pump. The blast does up to 60 health and
+  shock within 2 m, falling to nothing at 8 m (infected and animals take 2.5x), and leaves
+  a fire about 7 m across burning for 60 s, which can set off the next fuelled vehicle.
+  - **Cars** become vanilla's wreck of the same model and colour. Their cargo is thrown
+    out round the wreck at a quarter health (their own parts go with them), and a burnt
+    wheel and the hood fly off at 45 degrees.
+  - **Boats** lose their outboard motor, flung off the stern to splash down and sink;
+    the burnt, burst hull sinks where the boat was. Anything in it goes in the water.
+  - **Motorbikes** fly apart: wheels, fenders, exhaust and shields everywhere, nothing
+    left but the fire.
+  - Wrecks and flying bits are gone at restart. Only empty vehicles get the slow 5%/s
+    burn.
 
 - **Things burn.** Hay and straw, pallets, woodpiles, lumber piles, wooden sheds,
   outhouses, the hunters' feeding racks, feed shacks and deer stands, wooden houses,
@@ -122,8 +129,8 @@ comes from a git tag (`workshop_publish.sh` adds it to the description and chang
 1. Date the version's entry in `CHANGELOG.md`, commit, tag and push:
 
    ```sh
-   git tag -a v0.3 -m "Molotov 0.3"
-   git push origin main v0.3
+   git tag -a v0.4 -m "Molotov 0.4"
+   git push origin main v0.4
    ```
 
 2. Build: `tools/build.sh`.
