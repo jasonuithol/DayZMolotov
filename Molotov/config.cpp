@@ -2,7 +2,7 @@ class CfgPatches
 {
 	class Molotov
 	{
-		units[] = {"Molotov", "MolotovFire", "MolotovInferno", "MolotovBlast", "MolotovFlames", "MolotovAshes", "MolotovSmoulder"};
+		units[] = {"Molotov", "MolotovFire", "MolotovInferno", "MolotovBlast", "MolotovFlames", "MolotovAshes", "MolotovSmoulder", "MolotovBoatHull", "MolotovBoatEngine", "MolotovDebris_HatchbackWheel", "MolotovDebris_HatchbackHood", "MolotovDebris_Hatchback_02_Wheel", "MolotovDebris_Hatchback_02_Hood", "MolotovDebris_CivSedanWheel", "MolotovDebris_CivSedanHood", "MolotovDebris_Sedan_02_Wheel", "MolotovDebris_Sedan_02_Hood", "MolotovDebris_Offroad_02_Wheel", "MolotovDebris_Offroad_02_Hood", "MolotovDebris_Truck_01_Wheel", "MolotovDebris_Truck_01_Hood"};
 		weapons[] = {};
 		requiredVersion = 0.1;
 		requiredAddons[] = {"DZ_Data", "DZ_Scripts", "DZ_Gear_Drinks", "DZ_Gear_Cooking"};
@@ -83,6 +83,95 @@ class CfgVehicles
 	{
 		scope = 1;
 		model = "\DZ\data\lightpoint.p3d";
+	};
+
+	//! What's left of a boat that's gone up, sinking to the bottom (MolotovSunk.c). Not
+	//! stored: gone at restart
+	class MolotovBoatHull: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\Molotov\ruins\boat_hull_burnt.p3d";
+	};
+	class MolotovBoatEngine: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\Molotov\ruins\boat_engine_burnt.p3d";
+	};
+
+	//! Bits blown off a car going up (MolotovWreck, MolotovSunk.c): its ruined wheel, and its
+	//! hood with the paint burnt off. Not stored: gone at restart
+	class MolotovDebris_HatchbackWheel: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\OffroadHatchback\proxy\nivaWheel_destroyed.p3d";
+	};
+	class MolotovDebris_HatchbackHood: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\OffroadHatchback\proxy\nivaDoors_Hood.p3d";
+		hiddenSelections[] = {"dmgZone_doors"};
+		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\offroadhatchback\data\green\niva_hood_destruct.rvmat"};
+	};
+	class MolotovDebris_Hatchback_02_Wheel: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\Hatchback_02\proxy\Hatchback_02_Wheel_ruined.p3d";
+	};
+	class MolotovDebris_Hatchback_02_Hood: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\Hatchback_02\proxy\Hatchback_02_Hood.p3d";
+		hiddenSelections[] = {"dmgZone_doors"};
+		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\hatchback_02\data\red\hatchback_02_hood_destruct.rvmat"};
+	};
+	class MolotovDebris_CivSedanWheel: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\civiliansedan\proxy\sedanwheel_destroyed.p3d";
+	};
+	class MolotovDebris_CivSedanHood: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\civilianSedan\proxy\sedanhood.p3d";
+		hiddenSelections[] = {"dmgZone_doors"};
+		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\civiliansedan\data\white\civiliansedan_destruct.rvmat"};
+	};
+	class MolotovDebris_Sedan_02_Wheel: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\Sedan_02\proxy\Sedan_02_Wheel_ruined.p3d";
+	};
+	class MolotovDebris_Sedan_02_Hood: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\Sedan_02\proxy\Sedan_02_Hood.p3d";
+		hiddenSelections[] = {"dmgZone_doors"};
+		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\sedan_02\data\yellow\sedan_02_hood_destruct.rvmat"};
+	};
+	class MolotovDebris_Offroad_02_Wheel: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\Offroad_02\proxy\Offroad_02_Wheel_destroyed.p3d";
+	};
+	class MolotovDebris_Offroad_02_Hood: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\Offroad_02\proxy\Offroad_02_Hood.p3d";
+		hiddenSelections[] = {"dmgZone_doors"};
+		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\offroad_02\data\offroad_02_base_multi_destruct.rvmat"};
+	};
+	class MolotovDebris_Truck_01_Wheel: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\Truck_01\proxy\Truck_01_Wheel_ruined.p3d";
+	};
+	class MolotovDebris_Truck_01_Hood: HouseNoDestruct
+	{
+		scope = 1;
+		model = "\DZ\vehicles\wheeled\Truck_01\proxy\Truck_01_Hood.p3d";
+		hiddenSelections[] = {"dmgZone_doors", "camo_door"};
+		hiddenSelectionsTextures[] = {"#(argb,8,8,3)color(0.08,0.07,0.06,1.0,co)", "#(argb,8,8,3)color(0.08,0.07,0.06,1.0,co)"};
+		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\Truck_01\data\Truck_01_hood_destruct.rvmat", "dz\vehicles\wheeled\Truck_01\data\Truck_01_hood_destruct.rvmat"};
 	};
 
 	//! A heap of ash (and some burnt logs) where something burned away: the vanilla

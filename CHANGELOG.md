@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4 - unreleased
+
+- Exploding cars leave wrecks: each vanilla car (Niva, Golf, Olga, Sarka, Humvee, M3S) is
+  swapped for vanilla's abandoned wreck of the same model and colour. What was in its
+  cargo is thrown out on the ground round it (its own parts - wheels, doors, battery,
+  plugs, radiator, headlights - go with it). A burnt wheel and the hood fly off at 45
+  degrees and land some 8-10 m away. Wrecks and the flying bits are gone at restart.
+- Exploding boats: the outboard motor is blown off the stern at 45 degrees, splashes down
+  and sinks; the hull, burnt and burst, sinks where the boat was; the fire burns on the
+  water. Anything in the boat goes in the water.
+- The blast hurts: up to 60 health and shock within 2 m of a vehicle or fuel pump going
+  up, falling to nothing at 8 m (infected and animals take 2.5x), with the flinch, cry and
+  red flash. The vanilla explosion behind it barely touched players.
+- Fires on the sea burn on its surface (they could end up on the seabed).
+
 ## 0.3 - 2026-11-07
 
 - Things burn. Hay and straw (bales, haystacks, the big straw stacks), pallets, woodpiles,

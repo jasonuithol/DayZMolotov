@@ -58,6 +58,10 @@ class CustomMission: MissionServer
 		M + "residential\\houses\\house_2w03.p3d"
 	};
 	static const float BEACH_GAP = 12;
+	static const int BOATS = 6;
+	static const float VEHICLE_GAP = 1.5;
+	static const ref array<string> VEHICLES = {"OffroadHatchback", "Hatchback_02", "CivilianSedan", "Sedan_02", "Offroad_02", "Truck_01_Covered", "Motorbike_01_Red", "Motorbike_02_Blue"};
+	static const float BOAT_APART = 3.2;   //!< side by side: about a metre between them
 
 	void LayBeach()
 	{
@@ -91,6 +95,41 @@ class CustomMission: MissionServer
 			rowEnd[row] = rowEnd[row] + len + BEACH_GAP;
 		}
 		CountCopies("after laying out");
+		bool fresh = Census(b);
+		if (!m_Test && fresh)
+		{
+			// one of every vanilla vehicle, nose to tail a short gap apart, along the beach
+			// behind the spawn
+			float behind = 12;
+			for (int vi = 0; vi < VEHICLES.Count(); vi++)
+			{
+				vector front;
+				vector rear;
+				Length(VEHICLES[vi], front, rear);
+				float fz = front[2];
+				float rz = rear[2];
+				SpawnCarAt(Ground(b - m_BeachAlong * (behind + fz) + m_BeachLand * 14), m_BeachAlong, VEHICLES[vi]);
+				behind = behind + fz - rz + VEHICLE_GAP;
+			}
+			// and a line of boats side by side from the shore out to sea, for a chain reaction
+			vector shore = Shore(b, -m_BeachLand);
+			for (int bi = 0; bi < BOATS; bi++)
+			{
+				float seaward = BOAT_APART * bi;
+				vector bp = shore - m_BeachLand * seaward;
+				float bx = bp[0];
+				float bz = bp[2];
+				float floor = GetGame().SurfaceY(bx, bz);
+				bp[1] = floor;
+				float depth = GetGame().GetWaterDepth(bp);
+				if (depth > 0)
+					floor = floor + depth;
+				bp[1] = floor;
+				BoatScript boat = SpawnBoatAt(bp);
+				if (boat)
+					boat.SetDirection(m_BeachAlong);
+			}
+		}
 		if (m_Test)
 		{
 			// two hay bales 4 m apart past the end of the rows: light one, the other should
@@ -233,7 +272,8 @@ class CustomMission: MissionServer
 	// the rag" with a lighter/matches in the inventory, then throw.
 	// "GlassBottle+" = a bottle already filled with petrol, if crafting needs testing again.
 	static const ref array<string> KIT = {
-		"Molotov", "Molotov", "Molotov", "Molotov", "PetrolLighter", "Matchbox"
+		"Molotov", "Molotov", "Molotov", "Molotov", "PetrolLighter", "Matchbox",
+		"GlassBottle", "GlassBottle+", "Rag", "CanisterGasoline"
 	};
 	static const ref array<string> INFECTED = {
 		"ZmbM_HermitSkinny_Beige", "ZmbF_CitizenANormal_Blue", "ZmbM_PatrolNormal_Autumn",
@@ -313,22 +353,7 @@ class CustomMission: MissionServer
 		m_Lumber = PileOfWoodenPlanks.Cast(m_Statics.Get("lumber"));
 		m_Statics.Clear();   // hay has no stable script object: keep positions only
 
-		vector sea = FindSea();
-		if (sea != vector.Zero)
-		{
-			m_Boat = BoatScript.Cast(GetGame().CreateObjectEx("Boat_01_Orange", sea, ECE_CREATEPHYSICS | ECE_TRACE));
-			if (m_Boat)
-			{
-				m_Boat.OnDebugSpawn();
-				m_Boat.SetLifetimeMax(3888000);
-				m_Boat.SetLifetime(3888000);
-				Print("[Molotov] boat at " + m_Boat.GetPosition());
-			}
-		}
-		else
-		{
-			Print("[Molotov] no sea near the quay for the boat");
-		}
+		m_Boat = SpawnBoat(SPOT);
 
 		// firewood but no kindling: the molotov is both lighter and kindling
 		m_WoodFire = FireplaceBase.Cast(GetGame().CreateObjectEx("Fireplace", Ground(SPOT - ALONG * 14 + Side() * 9), ECE_PLACE_ON_SURFACE));
@@ -342,11 +367,14 @@ class CustomMission: MissionServer
 
 	protected PlayerBase m_Dummy;
 	protected CarScript m_Car;
+	protected PlayerBase m_Bystander;
+	protected vector m_CarAt;
 	protected float m_DummyHealth;
 	protected float m_CarEngine;
 	protected ZombieBase m_Zombie;
 	protected Land_FuelStation_Feed m_Pump;
 	protected BoatScript m_Boat;
+	protected vector m_BoatAt;
 	protected FireplaceBase m_WoodFire;
 	protected ref map<string, Object> m_Statics = new map<string, Object>;   //!< only while searching: hay has no stable script object
 	protected ref map<string, vector> m_StaticAt = new map<string, vector>;
@@ -685,6 +713,9 @@ class CustomMission: MissionServer
 					m_CarLoad.Insert(item);
 			}
 			Print("[MolotovTest] car fuel " + m_Car.GetFluidFraction(CarFluid.FUEL) + ", " + m_CarLoad.Count() + " items in its cargo");
+			// someone standing beside it, out of the fire but not the blast
+			m_CarAt = m_Car.GetPosition();
+			m_Bystander = PlayerBase.Cast(GetGame().CreatePlayer(null, "SurvivorM_Mirek", Ground(m_CarAt + Side() * 5), 0, "NONE"));
 		}
 
 		if (m_StrawTop != vector.Zero)
@@ -694,7 +725,10 @@ class CustomMission: MissionServer
 				Print("[MolotovTest] survivor on top of the straw stack at " + m_OnStraw.GetPosition());
 		}
 		if (m_Boat)
+		{
+			m_BoatAt = m_Boat.GetPosition();
 			DropLit(m_Boat.GetPosition() + "0 3 0");
+		}
 		else
 			Print("[MolotovTest] FAIL no boat");
 		if (m_WoodFire)
@@ -752,8 +786,17 @@ class CustomMission: MissionServer
 			Print("[MolotovTest] pump ruined=" + m_Pump.IsRuined() + " (want 1)");
 		foreach (string k, vector at : m_StaticAt)
 			Print("[MolotovTest] " + k + ": big fires at it " + Infernos(at) + " (want 1, straw 3)");
-		if (m_Boat)
-			Print("[MolotovTest] boat ruined=" + m_Boat.IsRuined() + " (want 1), blasts at it " + Infernos(m_Boat.GetPosition()));
+		Print("[MolotovTest] boat gone=" + (m_Boat == null) + " (want 1), blasts where it was " + Infernos(m_BoatAt) + " (want 1)");
+		array<Object> sunk = new array<Object>;
+		GetGame().GetObjectsAtPosition(m_BoatAt, 40, sunk, null);
+		foreach (Object so : sunk)
+		{
+			if (MolotovSunk.Cast(so) || so.GetType() == "MolotovBlast")
+			{
+				vector sp = so.GetPosition();
+				Print("[MolotovTest] " + so.GetType() + " at " + sp + ", " + vector.Distance(sp, m_BoatAt) + " m from the boat, seabed " + GetGame().SurfaceY(sp[0], sp[2]) + ", sea " + GetGame().SurfaceGetSeaLevel() + " (want the hull and engine on the seabed, the engine some 10-15 m off; the blast on the sea)");
+			}
+		}
 		if (m_WoodFire)
 			Print("[MolotovTest] fireplace with firewood burning=" + m_WoodFire.IsBurning() + " (want 1)");
 		if (m_ActionFire)
@@ -775,6 +818,30 @@ class CustomMission: MissionServer
 			healths += " " + it.GetType() + "=" + it.GetHealth01("", "");
 		}
 		Print("[MolotovTest] car load after going up (want each 0.25 or less): " + ruined + " ruined, " + gone + " gone, of " + m_CarLoad.Count() + ":" + healths);
+		int onGround;
+		foreach (EntityAI dropped : m_CarLoad)
+		{
+			if (dropped && !dropped.GetHierarchyParent())
+				onGround++;
+		}
+		string wrecks = "";
+		array<Object> near = new array<Object>;
+		GetGame().GetObjectsAtPosition(m_CarAt, 3, near, null);
+		foreach (Object w : near)
+		{
+			if (w.GetType().IndexOf("Land_Wreck_") == 0)
+				wrecks += " " + w.GetType();
+		}
+		near.Clear();
+		GetGame().GetObjectsAtPosition(m_CarAt, 20, near, null);
+		foreach (Object db : near)
+		{
+			if (db.GetType().IndexOf("MolotovDebris_") == 0)
+				Print("[MolotovTest] " + db.GetType() + " landed " + vector.Distance(db.GetPosition(), m_CarAt) + " m from the car, " + (db.GetPosition()[1] - GetGame().SurfaceY(db.GetPosition()[0], db.GetPosition()[2])) + " m over the ground (want a wheel and a hood, ~8 m off)");
+		}
+		Print("[MolotovTest] car gone=" + (m_Car == null) + " (want 1), wreck where it stood:" + wrecks + " (want one), its load on the ground " + onGround + " (want " + m_CarLoad.Count() + ")");
+		if (m_Bystander)
+			Print("[MolotovTest] bystander 5 m from the car: health " + m_Bystander.GetHealth("", "Health") + " (want well under 100: the blast reaches them)");
 		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(CheckLater, 58000, false);
 	}
 
@@ -954,7 +1021,7 @@ class CustomMission: MissionServer
 	}
 
 	//! Open sea off the quay: 3 m deep or more, nothing (jetties, buoys) within 8 m
-	vector FindSea()
+	vector FindSea(vector from)
 	{
 		array<Object> objs = new array<Object>;
 		for (int d = 25; d <= 120; d += 5)
@@ -962,7 +1029,7 @@ class CustomMission: MissionServer
 			for (int a = 0; a < 24; a++)
 			{
 				float ang = a * Math.PI2 / 24;
-				vector p = SPOT + Vector(Math.Cos(ang) * d, 0, Math.Sin(ang) * d);
+				vector p = from + Vector(Math.Cos(ang) * d, 0, Math.Sin(ang) * d);
 				if (!GetGame().SurfaceIsSea(p[0], p[2]))
 					continue;
 				p[1] = GetGame().SurfaceY(p[0], p[2]);
@@ -1004,20 +1071,133 @@ class CustomMission: MissionServer
 		return Vector(ALONG[2], 0, -ALONG[0]);
 	}
 
+	//! The first spot of sea about knee deep, walking from from towards dir
+	vector Shore(vector from, vector dir)
+	{
+		for (int d = 0; d < 150; d++)
+		{
+			vector p = from + dir * (float)d;
+			if (!GetGame().SurfaceIsSea(p[0], p[2]))
+				continue;
+			p[1] = GetGame().SurfaceY(p[0], p[2]);
+			float depth = GetGame().GetWaterDepth(p);
+			if (depth >= 0.7)
+			{
+				p[1] = p[1] + depth;
+				return p;
+			}
+		}
+		return vector.Zero;
+	}
+
+	//! A fuelled boat floating near from (a clear spot of sea at least 3 m deep)
+	BoatScript SpawnBoat(vector from)
+	{
+		vector sea = FindSea(from);
+		if (sea == vector.Zero)
+		{
+			Print("[Molotov] no sea near " + from + " for the boat");
+			return null;
+		}
+		return SpawnBoatAt(sea);
+	}
+
+	BoatScript SpawnBoatAt(vector sea)
+	{
+		if (sea == vector.Zero)
+		{
+			Print("[Molotov] nowhere to float the boat");
+			return null;
+		}
+		BoatScript boat = BoatScript.Cast(GetGame().CreateObjectEx("Boat_01_Orange", sea, ECE_CREATEPHYSICS | ECE_TRACE));
+		if (boat)
+		{
+			boat.OnDebugSpawn();
+			boat.SetLifetimeMax(3888000);
+			boat.SetLifetime(3888000);
+			Print("[Molotov] boat at " + boat.GetPosition());
+		}
+		return boat;
+	}
+
 	void SpawnCar()
 	{
-		vector at = Ground(SPOT + ALONG * 10 + Side() * 4);
-		CarScript car = CarScript.Cast(GetGame().CreateObjectEx("OffroadHatchback", at, ECE_PLACE_ON_SURFACE));
+		SpawnCarAt(Ground(SPOT + ALONG * 10 + Side() * 4), ALONG);
+	}
+
+	//! A vehicle type's collision box, measured on a copy made far off and deleted
+	void Length(string type, out vector hi, out vector lo)
+	{
+		hi = "0 0 2.5";
+		lo = "0 0 -2.5";
+		Object probe = GetGame().CreateObjectEx(type, "100 0 100", ECE_LOCAL);
+		vector box[2];
+		if (probe && probe.GetCollisionBox(box))
+		{
+			lo = box[0];
+			hi = box[1];
+		}
+		if (probe)
+			GetGame().ObjectDelete(probe);
+	}
+
+	//! What's on the beach before anything's laid out: after a restart, whatever was kept.
+	//! True if there are no vehicles from last time (a fresh world: lay them out)
+	bool Census(vector b)
+	{
+		array<Object> objs = new array<Object>;
+		GetGame().GetObjectsAtPosition(b, 150, objs, null);
+		map<string, int> kinds = new map<string, int>;
+		int vehicles;
+		foreach (Object o : objs)
+		{
+			string kind = "";
+			string t = o.GetType();
+			EntityAI e = EntityAI.Cast(o);
+			if (Transport.Cast(o))
+			{
+				kind = "vehicle " + t;
+				if (e.IsRuined())
+					kind += " (ruined)";
+				vehicles++;
+			}
+			else if (t.IndexOf("Land_Wreck_") == 0 || t.IndexOf("Land_wreck_") == 0)
+				kind = "car wreck";
+			else if (t.IndexOf("MolotovDebris_") == 0 || MolotovSunk.Cast(o))
+				kind = "flying debris / sunk boat";
+			else if (t == "MolotovAshes")
+				kind = "ash heap";
+			else if (t == "MolotovSmoulder")
+				kind = "smoulder";
+			else if (t.IndexOf("Molotov") == 0 && !ItemBase.Cast(o))
+				kind = "fire " + t;
+			else if (ItemBase.Cast(o) && !e.GetHierarchyParent())
+				kind = "item on the ground";
+			if (kind == "")
+				continue;
+			kinds.Set(kind, kinds.Get(kind) + 1);
+		}
+		Print("[MolotovRestart] on the beach at start, before laying out:");
+		foreach (string k, int n : kinds)
+			Print("[MolotovRestart]   " + n + " x " + k);
+		if (kinds.Count() == 0)
+			Print("[MolotovRestart]   nothing");
+		return vehicles == 0;
+	}
+
+	void SpawnCarAt(vector at, vector dir, string type = "OffroadHatchback")
+	{
+		EntityAI car = EntityAI.Cast(GetGame().CreateObjectEx(type, at, ECE_PLACE_ON_SURFACE));
 		if (!car)
 		{
-			Print("[Molotov] could not create the car");
+			Print("[Molotov] could not create a " + type);
 			return;
 		}
-		car.SetDirection(ALONG);
+		car.SetDirection(dir);
 		car.SetLifetimeMax(3888000);
 		car.SetLifetime(3888000);
 		car.OnDebugSpawn();   // wheels, doors, battery, fluids
-		Print("[Molotov] car at " + at);
+		Print("[Molotov] " + type + " at " + at);
 	}
 
 	override void StartingEquipSetup(PlayerBase player, bool clothesChosen)
