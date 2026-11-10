@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5 - 2026-11-10
+
+- Other mods can give more vehicles a wreck and burnt bits that fly off it, on the server
+  before anything burns: `MolotovWreck.Add("CarClass", "WreckClass", turn)`, then
+  `MolotovWreck.Fling("CarClass", "PieceClass", onEdge)` for each piece. The new Molotov -
+  Expansion Vehicles add-on uses it for DayZ Expansion's tractor, bus, UAZ, Land Rover and
+  UH-1H.
+- A burnt helicopter rotor blade, snapped off near the hub, for the add-on to fling.
+- A wreck now lies centred where the vehicle stood, rather than on the vehicle's origin.
+- The flying wheel and hood go a little further or shorter each time.
+
 ## 0.4.1 - 2026-11-09
 
 - Molotovs can also be made from Nasdara's glass bottle (the game's `WineBottle`, also

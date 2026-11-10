@@ -1,0 +1,21 @@
+Add-on for [b]Molotov[/b]: DayZ Expansion's vehicles burn down to a wreck like the vanilla cars do. When a fuelled Expansion vehicle goes up in a molotov fire, it's swapped for the matching vanilla wreck, burnt wheels, doors, bonnets and rotor blades fly off, and what was in its cargo is thrown out on the ground around it.
+
+[list]
+[*] Tractor: the tractor wreck
+[*] Bus: the Ikarus bus wreck
+[*] UAZ (every variant): the UAZ wreck
+[*] Land Rover: Nasdara's Land Rover wreck
+[*] UH-1H helicopter: the crashed Huey
+[/list]
+Other Expansion vehicles (Vodnik, Merlin, Little Bird, gyrocopters) have no matching wreck in the game; they still explode and burn, as with Molotov alone. Wrecks are gone at the next restart.
+
+Requires: Molotov (0.5 or later) and DayZ-Expansion-Vehicles. Server and client.
+
+[b]Install[/b] (paths relative to the server's install folder, shown as DayZServer/)
+[olist]
+[*] Put the mod's folder in the server's install folder as DayZServer/@Molotov_Expansion.
+[*] Add it to the server's launch parameter, after Molotov and the Expansion mods: -mod=...;@Molotov;@Molotov_Expansion
+[*] Key: the add-on is signed with the same key as Molotov, DayZServer/@Molotov_Expansion/keys/tarbaby.bikey. If DayZServer/keys/tarbaby.bikey is already there (from installing Molotov), there's nothing to copy; otherwise copy it into DayZServer/keys/.
+[*] Restart the server.
+[/olist]
+Players only need to subscribe; the DayZ launcher loads the mod for them.

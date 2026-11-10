@@ -920,10 +920,90 @@ class MolotovFlames: MolotovInferno
 	}
 }
 
+//! A wreck another mod has added for a car (MolotovWreck.Add)
+class MolotovWreckType
+{
+	string m_Car;     //!< car class, its subclasses included
+	string m_Wreck;   //!< wreck class, or several "A|B" to pick from at random
+	float m_Turn;     //!< degrees the wreck model is turned from the car's
+	ref array<string> m_Pieces = new array<string>;   //!< MolotovSunk classes flung off it
+	ref array<bool> m_OnEdge = new array<bool>;       //!< that piece's model stands on edge (a wheel, a door)
+
+	void MolotovWreckType(string car, string wreck, float turn)
+	{
+		m_Car = car;
+		m_Wreck = wreck;
+		m_Turn = turn;
+	}
+}
+
 //! A car that's gone up is swapped for vanilla's wreck of it (the abandoned-car map
 //! props), with what was in its cargo thrown out on the ground round the wreck
 class MolotovWreck
 {
+	//! wrecks added by other mods (Molotov_Expansion), ahead of our own table
+	static ref array<ref MolotovWreckType> s_Added = new array<ref MolotovWreckType>;
+
+	//! For other mods: a car of this class (or a subclass) that goes up is swapped for the
+	//! wreck, or one of "A|B" at random. turn is how far the wreck's model is turned from
+	//! the car's (the vanilla wreck props face backwards: 180). The most specific class
+	//! added wins, and it beats our own table. Server side, before anything burns:
+	//! MissionServer.OnInit is the place. Adding a class again starts it afresh.
+	static void Add(string car, string wreck, float turn = 180)
+	{
+		foreach (int i, MolotovWreckType known : s_Added)
+		{
+			if (known.m_Car == car)
+			{
+				s_Added.Remove(i);
+				break;
+			}
+		}
+		s_Added.Insert(new MolotovWreckType(car, wreck, turn));
+		Print("[Molotov] " + car + " burns down to " + wreck);
+	}
+
+	//! For other mods: one more piece flung off that car (Add it first) when it goes up, a
+	//! MolotovSunk class (it must exist on the clients too). The first flies off the side,
+	//! the second off the front, the next off the other side, the back, then anywhere.
+	//! onEdge: its model stands on edge (a wheel, a door), so it comes down on its side.
+	static void Fling(string car, string piece, bool onEdge = false)
+	{
+		foreach (MolotovWreckType known : s_Added)
+		{
+			if (known.m_Car == car)
+			{
+				known.m_Pieces.Insert(piece);
+				known.m_OnEdge.Insert(onEdge);
+				return;
+			}
+		}
+		Print("[Molotov] Fling: add a wreck for " + car + " first");
+	}
+
+	//! The added wreck for this car, null if none: the deepest class that matches
+	static MolotovWreckType Added(CarScript car)
+	{
+		MolotovWreckType best;
+		foreach (MolotovWreckType w : s_Added)
+		{
+			if (!car.IsKindOf(w.m_Car))
+				continue;
+			if (!best || GetGame().IsKindOf(w.m_Car, best.m_Car))
+				best = w;
+		}
+		return best;
+	}
+
+	//! How far the wreck's model is turned from the car's
+	static float Turn(CarScript car)
+	{
+		MolotovWreckType added = Added(car);
+		if (added)
+			return added.m_Turn;
+		return 180;   // the vanilla abandoned-car props
+	}
+
 	//! car base type, wreck class prefix, its colours (the first is the default)
 	static const ref array<string> CARS = {"OffroadHatchback", "Hatchback_02", "CivilianSedan", "Sedan_02", "Offroad_02", "Truck_01_Base"};
 	static const ref array<string> WRECKS = {"Land_Wreck_hb01_aban%1_", "Land_Wreck_hb02_aban%1_", "Land_Wreck_sed01_aban%1_", "Land_Wreck_sed02_aban%1_", "Land_Wreck_offroad02_aban%1", "Land_wreck_truck01_aban%1_"};
@@ -945,6 +1025,13 @@ class MolotovWreck
 	//! The wreck class for this car, "" if there isn't one
 	static string For(CarScript car)
 	{
+		MolotovWreckType added = Added(car);
+		if (added)
+		{
+			array<string> choices = new array<string>;
+			added.m_Wreck.Split("|", choices);
+			return choices.GetRandomElement();
+		}
 		for (int i = 0; i < CARS.Count(); i++)
 		{
 			if (!car.IsKindOf(CARS[i]))
@@ -1002,6 +1089,8 @@ class MolotovWreck
 		vector lo = box[0];
 		vector hi = box[1];
 		float reach = Math.Sqrt((hi[0] - lo[0]) * (hi[0] - lo[0]) + (hi[2] - lo[2]) * (hi[2] - lo[2])) * 0.5;
+		// the middle of the car (a helicopter's origin is up by its nose)
+		vector mid = car.ModelToWorld(Vector((lo[0] + hi[0]) * 0.5, 0, (lo[2] + hi[2]) * 0.5));
 
 		EntityAI wreck = EntityAI.Cast(GetGame().CreateObjectEx(type, pos, ECE_CREATEPHYSICS | ECE_UPDATEPATHGRAPH));
 		if (!wreck)
@@ -1009,16 +1098,20 @@ class MolotovWreck
 			Print("[Molotov] no wreck " + type + " for " + car.GetType());
 			return;
 		}
-		// the wreck models face the other way to the cars
+		// the vanilla wreck models face the other way to the cars
 		vector wori = ori;
-		wori[0] = wori[0] + 180;
-		if (wori[0] > 180)
+		wori[0] = wori[0] + Turn(car);
+		while (wori[0] > 180)
 			wori[0] = wori[0] - 360;
 		wreck.SetOrientation(wori);
-		// sit the wreck's bottom on the ground where the car stood
+		// the wreck's middle where the car's was, its bottom on the ground
 		if (wreck.GetCollisionBox(box))
 		{
 			vector wlo = box[0];
+			vector whi = box[1];
+			vector wmid = wreck.VectorToParent(Vector((wlo[0] + whi[0]) * 0.5, 0, (wlo[2] + whi[2]) * 0.5));
+			pos[0] = mid[0] - wmid[0];
+			pos[2] = mid[2] - wmid[2];
 			pos[1] = GetGame().SurfaceY(pos[0], pos[2]) - wlo[1] - 0.05;
 			wreck.SetPosition(pos);
 		}
@@ -1057,7 +1150,7 @@ class MolotovWreck
 				continue;
 			float ang = Math.RandomFloat(0, Math.PI2);
 			float d = reach + Math.RandomFloat(0.3, 2);
-			vector at = pos + Vector(Math.Cos(ang) * d, 0, Math.Sin(ang) * d);
+			vector at = mid + Vector(Math.Cos(ang) * d, 0, Math.Sin(ang) * d);
 			at[1] = GetGame().SurfaceY(at[0], at[2]) + 0.3;
 			MiscGameplayFunctions.ThrowEntityFromInventory(item, at, quat, vector.Zero, ThrowEntityFlags.NONE);
 		}
@@ -1067,23 +1160,65 @@ class MolotovWreck
 			if (ti)
 				thrown += " " + ti.GetType();
 		}
-		// a wheel off the side and the hood off the front, flying
-		int ci2 = Index(car);
-		if (ci2 >= 0)
+		// burnt bits flying: a wheel off the side and the hood off the front (and whatever
+		// else an added wreck has) at 45 degrees
+		array<string> pieces = new array<string>;
+		array<bool> onEdge = new array<bool>;
+		MolotovWreckType added = Added(car);
+		if (added)
 		{
-			vector fwd = car.GetDirection();
-			fwd[1] = 0;
-			fwd.Normalize();
-			vector right = Vector(fwd[2], 0, -fwd[0]);
-			float sideSign = 1;
-			if (Math.RandomFloat01() < 0.5)
-				sideSign = -1;
-			vector wheelAt = car.ModelToWorld(Vector(hi[0] * sideSign, 0.5, hi[2] * 0.55));
-			vector wheelDir = vector.RotateAroundZeroDeg(right * sideSign, vector.Up, Math.RandomFloat(-25, 25));
-			MolotovSunk.Throw("MolotovDebris_" + DEBRIS[ci2] + "Wheel", wheelAt, wheelDir, DEBRIS_SPEED, Vector(Math.RandomFloat(-180, 180), 0, 90));
-			vector hoodAt = car.ModelToWorld(Vector(0, hi[1], hi[2] * 0.6));
-			vector hoodDir = vector.RotateAroundZeroDeg(fwd, vector.Up, Math.RandomFloat(-35, 35));
-			MolotovSunk.Throw("MolotovDebris_" + DEBRIS[ci2] + "Hood", hoodAt, hoodDir, DEBRIS_SPEED, Vector(Math.RandomFloat(-180, 180), Math.RandomFloat(-8, 8), Math.RandomFloat(-8, 8)));
+			pieces.Copy(added.m_Pieces);
+			onEdge.Copy(added.m_OnEdge);
+		}
+		else
+		{
+			int ci2 = Index(car);
+			if (ci2 >= 0)
+			{
+				pieces.Insert("MolotovDebris_" + DEBRIS[ci2] + "Wheel");
+				onEdge.Insert(true);
+				pieces.Insert("MolotovDebris_" + DEBRIS[ci2] + "Hood");
+				onEdge.Insert(false);
+			}
+		}
+		vector fwd = car.GetDirection();
+		fwd[1] = 0;
+		fwd.Normalize();
+		vector right = Vector(fwd[2], 0, -fwd[0]);
+		float sideSign = 1;
+		if (Math.RandomFloat01() < 0.5)
+			sideSign = -1;
+		foreach (int pi, string piece : pieces)
+		{
+			vector start;
+			vector dir;
+			if (pi == 0 || pi == 2)        // off one side, then the other
+			{
+				float sgn = sideSign;
+				if (pi == 2)
+					sgn = -sideSign;
+				start = car.ModelToWorld(Vector(hi[0] * sgn, 0.5, hi[2] * 0.55 - (pi / 2) * (hi[2] - lo[2]) * 0.5));
+				dir = vector.RotateAroundZeroDeg(right * sgn, vector.Up, Math.RandomFloat(-25, 25));
+			}
+			else if (pi == 1)              // off the front
+			{
+				start = car.ModelToWorld(Vector(0, hi[1], hi[2] * 0.6));
+				dir = vector.RotateAroundZeroDeg(fwd, vector.Up, Math.RandomFloat(-35, 35));
+			}
+			else if (pi == 3)              // off the back
+			{
+				start = car.ModelToWorld(Vector(0, hi[1], lo[2] * 0.6));
+				dir = vector.RotateAroundZeroDeg(fwd * -1, vector.Up, Math.RandomFloat(-35, 35));
+			}
+			else                           // anywhere
+			{
+				start = mid + Vector(0, hi[1] - lo[1], 0);
+				dir = vector.RotateAroundZeroDeg(fwd, vector.Up, Math.RandomFloat(0, 360));
+			}
+			vector rest = Vector(Math.RandomFloat(-180, 180), Math.RandomFloat(-8, 8), Math.RandomFloat(-8, 8));
+			if (onEdge[pi])
+				rest = Vector(Math.RandomFloat(-180, 180), 0, 90);
+			MolotovSunk.Throw(piece, start, dir, DEBRIS_SPEED * Math.RandomFloat(0.85, 1.25), rest);
 		}
 
 		Print("[Molotov] " + car.GetType() + " is now " + type + " at " + wreck.GetPosition() + ", " + parts + " spare parts gone with it, thrown out:" + thrown);

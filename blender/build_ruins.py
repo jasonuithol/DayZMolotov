@@ -75,6 +75,7 @@ TREES = {
 # burnt through - and the outboard motor, blown off. Sizes from the boat's collision box.
 BOAT_HULL = (4.4, 1.9)      # length, width
 BOAT_ENGINE = (0.45, 1.25)  # head width, overall height
+ROTOR_BLADE = (4.6, 0.53)  # snapped-off length, chord (a UH-1H blade is 7.3 m x 0.53 m)
 
 
 class Mesh:
@@ -476,6 +477,29 @@ def build_boat_engine(head, height):
     return vis, geo
 
 
+def build_rotor_blade(length, chord):
+    """A helicopter's main rotor blade snapped off near the hub: a long flat aerofoil, bent up
+    and twisted along its length, the broken root end ragged. Charred. Lies flat, its origin
+    at its middle (flung off a burning Expansion UH-1H, Molotov_Expansion)"""
+    vis, geo = Mesh(), []
+    segs = 12
+    seg = length / segs
+    thick = chord * 0.1
+    for i in range(segs):
+        t = (i + 0.5) / segs
+        y = -length / 2 + seg * (i + 0.5)
+        lift = 0.35 * t * t                      # bent up towards the tip
+        twist = math.radians(14 * t) + random.uniform(-0.03, 0.03)
+        w = chord * (1.0 if i > 0 else 0.7)     # the root end torn narrower
+        vis.box(Vector((random.uniform(-0.01, 0.01), y, thick / 2 + lift)), (w, seg * 1.02, thick),
+                Euler((math.atan2(0.7 * t / segs, 1), twist, 0)))
+    # the spar's stub sticking out of the broken root, and the tip cap
+    vis.box(Vector((0.05, -length / 2 - 0.12, thick / 2)), (0.08, 0.3, 0.05), Euler((0, 0, math.radians(10))))
+    vis.box(Vector((0, length / 2 - 0.03, thick / 2 + 0.35)), (chord * 0.9, 0.06, thick * 1.4), Euler((0, math.radians(14), 0)))
+    geo.append((Vector((0, 0, 0.12)), (chord, length, 0.24 + 0.35), Euler((0, 0, 0))))
+    return vis, geo
+
+
 def geometry_object(name, parts):
     """Convex collision components from (centre, size, rot) boxes"""
     bm = bmesh.new()
@@ -604,6 +628,8 @@ def main():
     jobs += [("boat_hull_burnt", "hull", *BOAT_HULL), ("boat_engine_burnt", "engine", *BOAT_ENGINE)]
     builders["hull"] = build_boat_hull
     builders["engine"] = build_boat_engine
+    jobs += [("rotor_blade_burnt", "blade", *ROTOR_BLADE)]
+    builders["blade"] = build_rotor_blade
     for name, kind, w, d in jobs:
         random.seed(name[:-len("_burnt")])   # the original model's name: keeps each ruin as it was
         vis_mesh, parts = builders[kind](w, d)

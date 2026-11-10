@@ -73,6 +73,25 @@ saved. The numbers live in `MolotovSettings` in
 [`Molotov/Scripts/4_World/Molotov/Molotov.c`](Molotov/Scripts/4_World/Molotov/Molotov.c);
 there is no settings file yet.
 
+## Molotov - Expansion Vehicles
+
+[`Molotov_Expansion/`](Molotov_Expansion) is a small add-on (`-mod=`, after Molotov and Expansion): DayZ Expansion's tractor, bus, UAZ, Land Rover and UH-1H burn down to the
+matching vanilla wreck like the vanilla cars do. It names them with
+`MolotovWreck.Add(car, wreck, turn)` from `MissionServer.OnInit`; `turn` is how far the
+wreck's model is turned from the vehicle's (the vanilla wreck props face backwards, 180).
+Each `MolotovWreck.Fling(car, piece, onEdge)` then adds a burnt bit flung off it (off one
+side, the front, the other side, the back, then anywhere): our own `MolotovSunk` classes with
+Expansion's part models, vanilla's unreleased Ikarus bus parts and our rotor blade
+(`Molotov/ruins/rotor_blade_burnt.p3d`), so the add-on is loaded on clients too. Any mod can add wrecks the same way; the most
+specific class added wins, ahead of Molotov's own table.
+
+Its test bed, [`mission_expansion/`](mission_expansion) (`missions/molotov_expansion.chernarusplus`
+in DayZMissions), parks one fuelled vehicle of each kind in a field; `tools/test.sh
+molotov_expansion` blows them up and checks each became its wreck, centred where it stood
+and facing the same way, and what flew off (logged as `[MolotovExpTest]`). The facing check
+only compares the heights of the two ends, which is fooled by the Land Rover, bus and
+helicopter: look at those in game.
+
 ## Layout
 
 | Path | What |
@@ -87,6 +106,8 @@ there is no settings file yet.
 | `tools/make_textures.py` | Makes the oily rag texture and material from the installed game's vanilla rag |
 | `tools/build.sh` | Binarizes the model and stages the mod in `build/Molotov` |
 | `mission/` | Test mission |
+| `Molotov_Expansion/` | The Expansion vehicles add-on |
+| `mission_expansion/` | Its test mission |
 
 ## Building
 
