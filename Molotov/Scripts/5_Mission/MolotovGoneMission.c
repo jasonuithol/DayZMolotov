@@ -2,6 +2,14 @@
 //! the server telling them (see MolotovGone)
 modded class MissionServer
 {
+	//! Whatever goes up burns with our fire, not Better Explosions' own
+	override void OnInit()
+	{
+		super.OnInit();
+		BetterExplosions.s_OwnFire = false;
+		BetterExplosions.Event_OnExploded.Insert(MolotovIgnition.OnExploded);
+	}
+
 	override void InvokeOnConnect(PlayerBase player, PlayerIdentity identity)
 	{
 		super.InvokeOnConnect(player, identity);

@@ -508,17 +508,19 @@ class MolotovIgnition
 		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(MolotovIgnition.GoUp, MolotovSettings.COOKOFF_MS, false, o);
 	}
 
-	//! A vehicle or pump that caught fire goes up (BetterExplosions), and burns where it was
+	//! A vehicle or pump that caught fire goes up (BetterExplosions; OnExploded lights the fire)
 	static void GoUp(Object o)
 	{
 		s_Alight.RemoveItem(o);   // a ruined pump or vehicle never goes up again anyway
-		if (!o)
-			return;
-		vector pos = Ground(o.GetPosition());
-		bool vehicle = Transport.Cast(o) != null;
-		if (!BetterExplosions.Explode(o))
-			return;
-		if (vehicle)
+		if (o)
+			BetterExplosions.Explode(o);
+	}
+
+	//! Anything that's gone up - from our fire, or a vanilla explosive - burns where it stood,
+	//! with our fire (it spreads), not Better Explosions' own (MolotovGoneMission sets that up)
+	static void OnExploded(Object o, vector pos)
+	{
+		if (Transport.Cast(o))
 			GetGame().CreateObjectEx("MolotovBlast", pos, ECE_CREATEPHYSICS | ECE_UPDATEPATHGRAPH);
 		else
 			GetGame().CreateObjectEx("MolotovInferno", pos, ECE_CREATEPHYSICS | ECE_UPDATEPATHGRAPH);

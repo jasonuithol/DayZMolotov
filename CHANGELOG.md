@@ -6,8 +6,10 @@
   [Better Explosions](https://github.com/jasonuithol/DayZBetterExplosions), which Molotov
   now requires (load it before Molotov). Nothing changes in game: a fuelled vehicle or
   pump caught in the fire still goes up 3 s later - wreck, sinking boat, flying motorbike,
-  the blast that hurts - and burns for a minute where it stood. Other mods can now blow
-  vehicles up the same way without Molotov.
+  the blast that hurts - and burns for a minute where it stood.
+- Vanilla explosives now set fuelled vehicles off too (Better Explosions: landmines, the
+  M79's 40 mm round, C4, grenades right against a vehicle), and they burn with Molotov's
+  fire, which spreads, like any vehicle that goes up.
 - For modders: `MolotovWreck.Add` / `Fling` are now `BetterExplosionsWreck.Add` / `Fling`,
   and the flying bits are `BetterExplosionsDebris` classes.
 
