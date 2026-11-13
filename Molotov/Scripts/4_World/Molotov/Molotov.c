@@ -13,15 +13,12 @@ class MolotovSettings
 	static const float FIRE_HEIGHT = 1.5;        //!< standing on a roof above it doesn't burn
 	static const float MIN_FUEL_ML = 200;        //!< fuel a bottle needs to become a molotov
 
-	// Fuel going up: a car with fuel in the tank, or a working fuel pump, caught in a fire
+	// Fuel going up: a car with fuel in the tank, or a working fuel pump, caught in a fire.
+	// The explosion itself - and the wreck, the sinking boat, the flying bits - is
+	// BetterExplosions'; what's ours is the fire it leaves behind
 	static const int COOKOFF_MS = 3000;          //!< from catching fire to the explosion
-	static const string BLAST_AMMO = "LandFuelFeed_Ammo";   //!< vanilla's fuel pump explosion
 	static const int INFERNO_MS = 60000;         //!< how long a wreck or pump burns afterwards
 	static const float INFERNO_RADIUS = 3.5;
-	static const float BLAST_HEALTH = 60;        //!< what the blast does to a player (and shock) within BLAST_FULL m of it...
-	static const float BLAST_FULL = 2;
-	static const float BLAST_REACH = 8;          //!< ...falling to nothing this far out (infected and animals take 2.5x)
-	static const float BLAST_LOAD_DAMAGE = 0.75;      //!< what a vehicle going up does to everything in it: this fraction of each item's full health
 	static const float VEHICLE_DAMAGE_PER_S = 0.05;   //!< an empty boat or bike in the fire: engine (or whole) health per second
 
 	// Fire spreading from one burning thing to whatever is close by (a molotov's own pool
@@ -376,7 +373,7 @@ class MolotovIgnition
 
 	static bool HasFuel(Transport t)
 	{
-		return !t.IsRuined() && t.GetFluidFractionScript(ETransportFluid.FUEL) > 0;
+		return BetterExplosions.HasFuel(t);
 	}
 
 	//! Server: one tick of a fire reaching o
@@ -511,102 +508,20 @@ class MolotovIgnition
 		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(MolotovIgnition.GoUp, MolotovSettings.COOKOFF_MS, false, o);
 	}
 
-	//! The explosion's hit on everyone round it. The ammo's own damage hardly touches a
-	//! player, so the blast's bite on the living is ours: full close in, none at the edge
-	static void BlastPeople(EntityAI src, vector at)
-	{
-		array<Object> near = new array<Object>;
-		GetGame().GetObjectsAtPosition(at, MolotovSettings.BLAST_REACH, near, null);
-		foreach (Object o : near)
-		{
-			EntityAI e = EntityAI.Cast(o);
-			if (!e || !e.IsAlive())
-				continue;
-			float d = vector.Distance(at, e.GetPosition() + "0 1 0");
-			float f = 1 - Math.Clamp((d - MolotovSettings.BLAST_FULL) / (MolotovSettings.BLAST_REACH - MolotovSettings.BLAST_FULL), 0, 1);
-			if (f <= 0)
-				continue;
-			float hit = MolotovSettings.BLAST_HEALTH * f;
-			PlayerBase pb = PlayerBase.Cast(e);
-			if (pb)
-			{
-				MolotovPain.Burn(pb, src, hit, hit);
-				Print("[Molotov] blast hit " + pb.GetType() + " " + d + " m off for " + hit);
-			}
-			else if (e.IsInherited(ZombieBase) || e.IsInherited(AnimalBase))
-			{
-				e.AddHealth("", "Health", -hit * 2.5);
-			}
-		}
-	}
-
+	//! A vehicle or pump that caught fire goes up (BetterExplosions), and burns where it was
 	static void GoUp(Object o)
 	{
 		s_Alight.RemoveItem(o);   // a ruined pump or vehicle never goes up again anyway
 		if (!o)
 			return;
 		vector pos = Ground(o.GetPosition());
-
-		Land_FuelStation_Feed pump = Land_FuelStation_Feed.Cast(o);
-		if (pump)
-		{
-			if (pump.IsRuined())
-				return;
-			// vanilla blows a pump up when it's destroyed (Land_FuelStation_Feed.EEKilled)
-			pump.SetHealth("", "", 0);
-			Print("[Molotov] fuel pump went up at " + pos + " ruined=" + pump.IsRuined());
-			BlastPeople(pump, pos + "0 1 0");
+		bool vehicle = Transport.Cast(o) != null;
+		if (!BetterExplosions.Explode(o))
+			return;
+		if (vehicle)
+			GetGame().CreateObjectEx("MolotovBlast", pos, ECE_CREATEPHYSICS | ECE_UPDATEPATHGRAPH);
+		else
 			GetGame().CreateObjectEx("MolotovInferno", pos, ECE_CREATEPHYSICS | ECE_UPDATEPATHGRAPH);
-			return;
-		}
-
-		Transport t = Transport.Cast(o);
-		if (!t || !HasFuel(t))
-			return;
-		CarScript car = CarScript.Cast(t);
-		if (car)
-		{
-			car.LeakAll(CarFluid.FUEL);
-			car.SetHealth("Engine", "Health", 0);
-			car.SetHealth("FuelTank", "Health", 0);
-		}
-		BoatScript boat = BoatScript.Cast(t);
-		if (boat)
-			boat.LeakAll(BoatFluid.FUEL);
-		if (t.GetMaxHealth("Engine", "Health") > 0)
-			t.SetHealth("Engine", "Health", 0);
-		t.SetHealth("", "", 0);
-
-		// everything in it - parts and cargo - takes a beating: pristine comes out badly
-		// damaged, anything already worn is ruined
-		array<EntityAI> load = new array<EntityAI>;
-		t.GetInventory().EnumerateInventory(InventoryTraversalType.PREORDER, load);
-		foreach (EntityAI item : load)
-		{
-			if (item != t)
-				item.AddHealth("", "Health", -item.GetMaxHealth("", "Health") * MolotovSettings.BLAST_LOAD_DAMAGE);
-		}
-		Print("[Molotov] " + t.GetType() + " went up at " + pos + ", " + (load.Count() - 1) + " items in it damaged");
-		GetGame().CreateObjectEx("MolotovBlast", pos, ECE_CREATEPHYSICS | ECE_UPDATEPATHGRAPH);
-		// the blast goes off just over the top of the vehicle: from inside, a car's own body
-		// shields everyone standing round it from the explosion
-		vector at = pos + "0 0.5 0";
-		vector box[2];
-		if (t.GetCollisionBox(box))
-		{
-			vector lo = box[0];
-			vector hi = box[1];
-			at = t.ModelToWorld(Vector((lo[0] + hi[0]) * 0.5, hi[1] + 0.3, (lo[2] + hi[2]) * 0.5));
-		}
-		DamageSystem.ExplosionDamage(t, null, MolotovSettings.BLAST_AMMO, at, DamageType.EXPLOSION);
-		BlastPeople(t, pos + "0 1 0");
-		if (boat)
-			GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(MolotovSunk.Sink, 200, false, boat);
-		MotorbikeScript bike = MotorbikeScript.Cast(t);
-		if (bike)
-			GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(MolotovSunk.Scatter, 200, false, bike);
-		if (car && MolotovWreck.For(car) != "")
-			GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(MolotovWreck.Swap, 200, false, car);
 	}
 }
 
@@ -886,18 +801,9 @@ class MolotovInferno: MolotovFire
 	}
 }
 
-//! A fuelled vehicle going up: a fireball, then the inferno (the explosion itself - the fuel
-//! pump's, blast damage and sound - is set off over the vehicle by MolotovIgnition.GoUp)
-class MolotovBlast: MolotovInferno
-{
-	override void StartEffects()
-	{
-		vector c = GetPosition();
-		ParticleManager.GetInstance().PlayInWorld(ParticleList.EXPLOSION_LANDMINE, c + "0 0.5 0");
-		ParticleManager.GetInstance().PlayInWorld(ParticleList.EXPLOSION_LANDMINE, c + "0 1.5 0");
-		super.StartEffects();
-	}
-}
+//! The fire a fuelled vehicle leaves when it goes up (the explosion and fireball are
+//! BetterExplosions')
+class MolotovBlast: MolotovInferno {}
 
 //! Flames only, on top of a tall burning object (the inferno below it does the burning)
 class MolotovFlames: MolotovInferno
@@ -917,311 +823,5 @@ class MolotovFlames: MolotovInferno
 			float a = i * Math.PI2 / 3 + Math.RandomFloat(-0.4, 0.4);
 			m_Flames.Insert(ParticleManager.GetInstance().PlayInWorld(ParticleList.CAMP_NORMAL_FIRE, c + Vector(Math.Cos(a) * 1.5, 0, Math.Sin(a) * 1.5)));
 		}
-	}
-}
-
-//! A wreck another mod has added for a car (MolotovWreck.Add)
-class MolotovWreckType
-{
-	string m_Car;     //!< car class, its subclasses included
-	string m_Wreck;   //!< wreck class, or several "A|B" to pick from at random
-	float m_Turn;     //!< degrees the wreck model is turned from the car's
-	ref array<string> m_Pieces = new array<string>;   //!< MolotovSunk classes flung off it
-	ref array<bool> m_OnEdge = new array<bool>;       //!< that piece's model stands on edge (a wheel, a door)
-
-	void MolotovWreckType(string car, string wreck, float turn)
-	{
-		m_Car = car;
-		m_Wreck = wreck;
-		m_Turn = turn;
-	}
-}
-
-//! A car that's gone up is swapped for vanilla's wreck of it (the abandoned-car map
-//! props), with what was in its cargo thrown out on the ground round the wreck
-class MolotovWreck
-{
-	//! wrecks added by other mods (Molotov_Expansion), ahead of our own table
-	static ref array<ref MolotovWreckType> s_Added = new array<ref MolotovWreckType>;
-
-	//! For other mods: a car of this class (or a subclass) that goes up is swapped for the
-	//! wreck, or one of "A|B" at random. turn is how far the wreck's model is turned from
-	//! the car's (the vanilla wreck props face backwards: 180). The most specific class
-	//! added wins, and it beats our own table. Server side, before anything burns:
-	//! MissionServer.OnInit is the place. Adding a class again starts it afresh.
-	static void Add(string car, string wreck, float turn = 180)
-	{
-		foreach (int i, MolotovWreckType known : s_Added)
-		{
-			if (known.m_Car == car)
-			{
-				s_Added.Remove(i);
-				break;
-			}
-		}
-		s_Added.Insert(new MolotovWreckType(car, wreck, turn));
-		Print("[Molotov] " + car + " burns down to " + wreck);
-	}
-
-	//! For other mods: one more piece flung off that car (Add it first) when it goes up, a
-	//! MolotovSunk class (it must exist on the clients too). The first flies off the side,
-	//! the second off the front, the next off the other side, the back, then anywhere.
-	//! onEdge: its model stands on edge (a wheel, a door), so it comes down on its side.
-	static void Fling(string car, string piece, bool onEdge = false)
-	{
-		foreach (MolotovWreckType known : s_Added)
-		{
-			if (known.m_Car == car)
-			{
-				known.m_Pieces.Insert(piece);
-				known.m_OnEdge.Insert(onEdge);
-				return;
-			}
-		}
-		Print("[Molotov] Fling: add a wreck for " + car + " first");
-	}
-
-	//! The added wreck for this car, null if none: the deepest class that matches
-	static MolotovWreckType Added(CarScript car)
-	{
-		MolotovWreckType best;
-		foreach (MolotovWreckType w : s_Added)
-		{
-			if (!car.IsKindOf(w.m_Car))
-				continue;
-			if (!best || GetGame().IsKindOf(w.m_Car, best.m_Car))
-				best = w;
-		}
-		return best;
-	}
-
-	//! How far the wreck's model is turned from the car's
-	static float Turn(CarScript car)
-	{
-		MolotovWreckType added = Added(car);
-		if (added)
-			return added.m_Turn;
-		return 180;   // the vanilla abandoned-car props
-	}
-
-	//! car base type, wreck class prefix, its colours (the first is the default)
-	static const ref array<string> CARS = {"OffroadHatchback", "Hatchback_02", "CivilianSedan", "Sedan_02", "Offroad_02", "Truck_01_Base"};
-	static const ref array<string> WRECKS = {"Land_Wreck_hb01_aban%1_", "Land_Wreck_hb02_aban%1_", "Land_Wreck_sed01_aban%1_", "Land_Wreck_sed02_aban%1_", "Land_Wreck_offroad02_aban%1", "Land_wreck_truck01_aban%1_"};
-	//! what's blown off it (MolotovSunk: MolotovDebris_<part>Wheel / Hood)
-	static const ref array<string> DEBRIS = {"Hatchback", "Hatchback_02_", "CivSedan", "Sedan_02_", "Offroad_02_", "Truck_01_"};
-	static const float DEBRIS_SPEED = 9;   //!< m/s at 45 degrees: lands ~8 m off
-	static const ref array<string> COLOURS = {"green blue white", "red black blue", "white black wine", "yellow red grey", "", "green orange blue"};
-
-	static int Index(CarScript car)
-	{
-		for (int i = 0; i < CARS.Count(); i++)
-		{
-			if (car.IsKindOf(CARS[i]))
-				return i;
-		}
-		return -1;
-	}
-
-	//! The wreck class for this car, "" if there isn't one
-	static string For(CarScript car)
-	{
-		MolotovWreckType added = Added(car);
-		if (added)
-		{
-			array<string> choices = new array<string>;
-			added.m_Wreck.Split("|", choices);
-			return choices.GetRandomElement();
-		}
-		for (int i = 0; i < CARS.Count(); i++)
-		{
-			if (!car.IsKindOf(CARS[i]))
-				continue;
-			string wreck = string.Format(WRECKS[i], Math.RandomIntInclusive(1, 2));
-			if (COLOURS[i] == "")
-				return wreck;
-			array<string> colours = new array<string>;
-			COLOURS[i].Split(" ", colours);
-			string type = car.GetType();
-			type.ToLower();
-			string colour = colours[0];
-			foreach (string c : colours)
-			{
-				if (type.Contains(c))
-					colour = c;
-			}
-			return wreck + colour;
-		}
-		return "";
-	}
-
-	static const ref array<string> PARTS = {"CarWheel", "CarDoor", "CarBattery", "TruckBattery", "SparkPlug", "GlowPlug", "CarRadiator", "HeadlightH7"};
-
-	//! A vehicle part: something that fits one of the car's own slots, or any car's
-	static bool IsPart(EntityAI item, array<string> slots)
-	{
-		if (!item)
-			return false;
-		foreach (string kind : PARTS)
-		{
-			if (item.IsKindOf(kind))
-				return true;
-		}
-		array<string> fits = new array<string>;
-		item.ConfigGetTextArray("inventorySlot", fits);
-		foreach (string f : fits)
-		{
-			f.ToLower();
-			if (slots.Find(f) >= 0)
-				return true;
-		}
-		return false;
-	}
-
-	static void Swap(CarScript car)
-	{
-		if (!car)
-			return;
-		string type = For(car);
-		vector pos = car.GetPosition();
-		vector ori = car.GetOrientation();
-		vector box[2];
-		car.GetCollisionBox(box);
-		vector lo = box[0];
-		vector hi = box[1];
-		float reach = Math.Sqrt((hi[0] - lo[0]) * (hi[0] - lo[0]) + (hi[2] - lo[2]) * (hi[2] - lo[2])) * 0.5;
-		// the middle of the car (a helicopter's origin is up by its nose)
-		vector mid = car.ModelToWorld(Vector((lo[0] + hi[0]) * 0.5, 0, (lo[2] + hi[2]) * 0.5));
-
-		EntityAI wreck = EntityAI.Cast(GetGame().CreateObjectEx(type, pos, ECE_CREATEPHYSICS | ECE_UPDATEPATHGRAPH));
-		if (!wreck)
-		{
-			Print("[Molotov] no wreck " + type + " for " + car.GetType());
-			return;
-		}
-		// the vanilla wreck models face the other way to the cars
-		vector wori = ori;
-		wori[0] = wori[0] + Turn(car);
-		while (wori[0] > 180)
-			wori[0] = wori[0] - 360;
-		wreck.SetOrientation(wori);
-		// the wreck's middle where the car's was, its bottom on the ground
-		if (wreck.GetCollisionBox(box))
-		{
-			vector wlo = box[0];
-			vector whi = box[1];
-			vector wmid = wreck.VectorToParent(Vector((wlo[0] + whi[0]) * 0.5, 0, (wlo[2] + whi[2]) * 0.5));
-			pos[0] = mid[0] - wmid[0];
-			pos[2] = mid[2] - wmid[2];
-			pos[1] = GetGame().SurfaceY(pos[0], pos[2]) - wlo[1] - 0.05;
-			wreck.SetPosition(pos);
-		}
-		wreck.Update();
-
-		// its cargo scattered round the wreck. Car parts - wheels, doors, battery, plugs,
-		// radiator, headlights - go with the car, fitted or spare
-		array<string> slots = new array<string>;
-		car.ConfigGetTextArray("attachments", slots);
-		foreach (int si, string sl : slots)
-		{
-			sl.ToLower();
-			slots[si] = sl;
-		}
-		array<EntityAI> items = new array<EntityAI>;
-		int parts;
-		CargoBase cargo = car.GetInventory().GetCargo();
-		if (cargo)
-		{
-			for (int c = 0; c < cargo.GetItemCount(); c++)
-			{
-				EntityAI ci = cargo.GetItem(c);
-				if (IsPart(ci, slots))
-					parts++;
-				else
-					items.Insert(ci);
-			}
-		}
-		vector m[3];
-		float quat[4];
-		Math3D.YawPitchRollMatrix(ori, m);
-		Math3D.MatrixToQuat(m, quat);
-		foreach (EntityAI item : items)
-		{
-			if (!item)
-				continue;
-			float ang = Math.RandomFloat(0, Math.PI2);
-			float d = reach + Math.RandomFloat(0.3, 2);
-			vector at = mid + Vector(Math.Cos(ang) * d, 0, Math.Sin(ang) * d);
-			at[1] = GetGame().SurfaceY(at[0], at[2]) + 0.3;
-			MiscGameplayFunctions.ThrowEntityFromInventory(item, at, quat, vector.Zero, ThrowEntityFlags.NONE);
-		}
-		string thrown = "";
-		foreach (EntityAI ti : items)
-		{
-			if (ti)
-				thrown += " " + ti.GetType();
-		}
-		// burnt bits flying: a wheel off the side and the hood off the front (and whatever
-		// else an added wreck has) at 45 degrees
-		array<string> pieces = new array<string>;
-		array<bool> onEdge = new array<bool>;
-		MolotovWreckType added = Added(car);
-		if (added)
-		{
-			pieces.Copy(added.m_Pieces);
-			onEdge.Copy(added.m_OnEdge);
-		}
-		else
-		{
-			int ci2 = Index(car);
-			if (ci2 >= 0)
-			{
-				pieces.Insert("MolotovDebris_" + DEBRIS[ci2] + "Wheel");
-				onEdge.Insert(true);
-				pieces.Insert("MolotovDebris_" + DEBRIS[ci2] + "Hood");
-				onEdge.Insert(false);
-			}
-		}
-		vector fwd = car.GetDirection();
-		fwd[1] = 0;
-		fwd.Normalize();
-		vector right = Vector(fwd[2], 0, -fwd[0]);
-		float sideSign = 1;
-		if (Math.RandomFloat01() < 0.5)
-			sideSign = -1;
-		foreach (int pi, string piece : pieces)
-		{
-			vector start;
-			vector dir;
-			if (pi == 0 || pi == 2)        // off one side, then the other
-			{
-				float sgn = sideSign;
-				if (pi == 2)
-					sgn = -sideSign;
-				start = car.ModelToWorld(Vector(hi[0] * sgn, 0.5, hi[2] * 0.55 - (pi / 2) * (hi[2] - lo[2]) * 0.5));
-				dir = vector.RotateAroundZeroDeg(right * sgn, vector.Up, Math.RandomFloat(-25, 25));
-			}
-			else if (pi == 1)              // off the front
-			{
-				start = car.ModelToWorld(Vector(0, hi[1], hi[2] * 0.6));
-				dir = vector.RotateAroundZeroDeg(fwd, vector.Up, Math.RandomFloat(-35, 35));
-			}
-			else if (pi == 3)              // off the back
-			{
-				start = car.ModelToWorld(Vector(0, hi[1], lo[2] * 0.6));
-				dir = vector.RotateAroundZeroDeg(fwd * -1, vector.Up, Math.RandomFloat(-35, 35));
-			}
-			else                           // anywhere
-			{
-				start = mid + Vector(0, hi[1] - lo[1], 0);
-				dir = vector.RotateAroundZeroDeg(fwd, vector.Up, Math.RandomFloat(0, 360));
-			}
-			vector rest = Vector(Math.RandomFloat(-180, 180), Math.RandomFloat(-8, 8), Math.RandomFloat(-8, 8));
-			if (onEdge[pi])
-				rest = Vector(Math.RandomFloat(-180, 180), 0, 90);
-			MolotovSunk.Throw(piece, start, dir, DEBRIS_SPEED * Math.RandomFloat(0.85, 1.25), rest);
-		}
-
-		Print("[Molotov] " + car.GetType() + " is now " + type + " at " + wreck.GetPosition() + ", " + parts + " spare parts gone with it, thrown out:" + thrown);
-		GetGame().ObjectDelete(car);
 	}
 }

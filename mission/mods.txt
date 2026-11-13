@@ -1,4 +1,5 @@
 # Our own molotov, built from ../Molotov (DayZMissions mods/Molotov is a symlink to it).
+local @BetterExplosions
 local @Molotov
 # The Workshop "Fire Overhaul" mods were tried 2026-11-03: client halves only, unusable.
 # 2969381819 @FireOverhaulMolotov

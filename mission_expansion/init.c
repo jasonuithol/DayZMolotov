@@ -123,7 +123,7 @@ class CustomMission: MissionServer
 			m_Dir.Insert(dir);
 			m_Len.Insert(hi[2] - lo[2]);
 			m_Slope.Insert(Slope(car.ModelToWorld((lo + hi) * 0.5), dir, hi[2] - lo[2]));
-			Print("[MolotovExpTest] " + car.GetType() + " fuel " + car.GetFluidFraction(CarFluid.FUEL) + ", wreck for it: " + MolotovWreck.For(car) + ", turn " + MolotovWreck.Turn(car));
+			Print("[MolotovExpTest] " + car.GetType() + " fuel " + car.GetFluidFraction(CarFluid.FUEL) + ", wreck for it: " + BetterExplosionsWreck.For(car) + ", turn " + BetterExplosionsWreck.Turn(car));
 			MolotovIgnition.GoUp(car);
 		}
 		GetGame().GetCallQueue(CALL_CATEGORY_GAMEPLAY).CallLater(Check, 5000, false);
@@ -152,7 +152,7 @@ class CustomMission: MissionServer
 			string flown = "";
 			foreach (Object fo : around)
 			{
-				if (fo.GetType().IndexOf("MolotovDebris_") == 0)
+				if (fo.GetType().IndexOf("BetterExplosions_") == 0)
 					flown += " " + fo.GetType() + "@" + vector.Distance(fo.GetPosition(), m_Mid[i]).ToString();
 			}
 			Print("[MolotovExpTest] " + type + " flung:" + flown);

@@ -26,18 +26,12 @@ petrol and a rag. Light it, throw it, and whatever it hits burns.
   | Cars (engine and fuel tank) | 5% of their health |
 
 - **Fuel goes up.** Any vehicle with fuel in it (car, boat, motorbike) caught in the fire
-  explodes 3 s later, as does a working fuel pump. The blast does up to 60 health and
-  shock within 2 m, falling to nothing at 8 m (infected and animals take 2.5x), and leaves
-  a fire about 7 m across burning for 60 s, which can set off the next fuelled vehicle.
-  - **Cars** become vanilla's wreck of the same model and colour. Their cargo is thrown
-    out round the wreck at a quarter health (their own parts go with them), and a burnt
-    wheel and the hood fly off at 45 degrees.
-  - **Boats** lose their outboard motor, flung off the stern to splash down and sink;
-    the burnt, burst hull sinks where the boat was. Anything in it goes in the water.
-  - **Motorbikes** fly apart: wheels, fenders, exhaust and shields everywhere, nothing
-    left but the fire.
-  - Wrecks and flying bits are gone at restart. Only empty vehicles get the slow 5%/s
-    burn.
+  explodes 3 s later, as does a working fuel pump, and leaves a fire about 7 m across
+  burning for 60 s, which can set off the next fuelled vehicle. The explosion itself -
+  the blast that hurts (60 health within 2 m, nothing at 8 m), the wrecks, the boats that
+  sink, the motorbikes that fly apart - comes from the
+  [Better Explosions](https://github.com/jasonuithol/DayZBetterExplosions) library mod,
+  which Molotov requires. Only empty vehicles get the slow 5%/s burn.
 
 - **Things burn.** Hay and straw, pallets, woodpiles, lumber piles, wooden sheds,
   outhouses, the hunters' feeding racks, feed shacks and deer stands, wooden houses,
@@ -75,15 +69,9 @@ there is no settings file yet.
 
 ## Molotov - Expansion Vehicles
 
-[`Molotov_Expansion/`](Molotov_Expansion) is a small add-on (`-mod=`, after Molotov and Expansion): DayZ Expansion's tractor, bus, UAZ, Land Rover and UH-1H burn down to the
-matching vanilla wreck like the vanilla cars do. It names them with
-`MolotovWreck.Add(car, wreck, turn)` from `MissionServer.OnInit`; `turn` is how far the
-wreck's model is turned from the vehicle's (the vanilla wreck props face backwards, 180).
-Each `MolotovWreck.Fling(car, piece, onEdge)` then adds a burnt bit flung off it (off one
-side, the front, the other side, the back, then anywhere): our own `MolotovSunk` classes with
-Expansion's part models, vanilla's unreleased Ikarus bus parts and our rotor blade
-(`Molotov/ruins/rotor_blade_burnt.p3d`), so the add-on is loaded on clients too. Any mod can add wrecks the same way; the most
-specific class added wins, ahead of Molotov's own table.
+[`Molotov_Expansion/`](Molotov_Expansion) used to give DayZ Expansion's vehicles their
+wrecks; that's now the Better Explosions - Expansion Vehicles add-on. It's kept, empty,
+requiring that add-on, so servers that list it keep working.
 
 Its test bed, [`mission_expansion/`](mission_expansion) (`missions/molotov_expansion.chernarusplus`
 in DayZMissions), parks one fuelled vehicle of each kind in a field; `tools/test.sh
@@ -97,7 +85,7 @@ helicopter: look at those in game.
 | Path | What |
 |---|---|
 | `Molotov/` | The mod (PBO prefix `Molotov`): config, scripts, model, textures, Workshop files |
-| `Molotov/Scripts/4_World/Molotov/` | The molotov and its fire (`Molotov.c`: what burns, spreading, vehicles), the Light the rag action, the recipe, fireplaces, burning players (`MolotovPain.c`), burnt-down objects, ruins and ash (`MolotovGone.c`) |
+| `Molotov/Scripts/4_World/Molotov/` | The molotov and its fire (`Molotov.c`: what burns, spreading, setting vehicles off), the Light the rag action, the recipe, fireplaces, burning players (`MolotovPain.c`), burnt-down objects, ruins and ash (`MolotovGone.c`) |
 | `Molotov/Scripts/5_Mission/` | The tilted inventory icon; telling joining players what's burnt down |
 | `Molotov/ruins/` | Our burnt ruins and stumps, each hot (glowing) and cold |
 | `Molotov/extras/` | Loot entry for server admins (shipped beside `addons/`, not packed) |
@@ -106,7 +94,7 @@ helicopter: look at those in game.
 | `tools/make_textures.py` | Makes the oily rag texture and material from the installed game's vanilla rag |
 | `tools/build.sh` | Binarizes the model and stages the mod in `build/Molotov` |
 | `mission/` | Test mission |
-| `Molotov_Expansion/` | The Expansion vehicles add-on |
+| `Molotov_Expansion/` | The old Expansion vehicles add-on, now empty (requires BetterExplosions_Expansion) |
 | `mission_expansion/` | Its test mission |
 
 ## Building
@@ -123,7 +111,9 @@ tools/build.sh
 ```
 
 Packing and signing is done by DayZMissions' `tools/build_mod.py`
-(`~/Projects/DayZMissions/mods/Molotov` is a symlink to `build/Molotov`).
+(`~/Projects/DayZMissions/mods/Molotov` is a symlink to `build/Molotov`). Better Explosions
+is built from its own repo, `~/Projects/DayZBetterExplosions` (`tools/build.sh` there);
+the test missions load it ahead of Molotov.
 
 ## Testing
 

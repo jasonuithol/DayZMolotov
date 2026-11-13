@@ -796,7 +796,7 @@ class CustomMission: MissionServer
 		GetGame().GetObjectsAtPosition(m_BoatAt, 40, sunk, null);
 		foreach (Object so : sunk)
 		{
-			if (so.GetType().IndexOf("MolotovBoat") == 0 || so.GetType() == "MolotovBlast")
+			if (so.GetType().IndexOf("BetterExplosions_Boat") == 0 || so.GetType() == "MolotovBlast")
 			{
 				vector sp = so.GetPosition();
 				Print("[MolotovTest] " + so.GetType() + " at " + sp + ", " + vector.Distance(sp, m_BoatAt) + " m from the boat, seabed " + GetGame().SurfaceY(sp[0], sp[2]) + ", sea " + GetGame().SurfaceGetSeaLevel() + " (want the hull and engine on the seabed, the engine some 10-15 m off; the blast on the sea)");
@@ -841,7 +841,7 @@ class CustomMission: MissionServer
 		GetGame().GetObjectsAtPosition(m_CarAt, 20, near, null);
 		foreach (Object db : near)
 		{
-			if (db.GetType().IndexOf("MolotovDebris_") == 0 && db.GetType().IndexOf("Motorbike") < 0)
+			if (db.GetType().IndexOf("BetterExplosions_") == 0 && db.GetType().IndexOf("Motorbike") < 0 && db.GetType().IndexOf("Boat") < 0)
 				Print("[MolotovTest] " + db.GetType() + " landed " + vector.Distance(db.GetPosition(), m_CarAt) + " m from the car, " + (db.GetPosition()[1] - GetGame().SurfaceY(db.GetPosition()[0], db.GetPosition()[2])) + " m over the ground (want a wheel and a hood, ~8 m off)");
 		}
 		Print("[MolotovTest] car gone=" + (m_Car == null) + " (want 1), wreck where it stood:" + wrecks + " (want one), its load on the ground " + onGround + " (want " + m_CarLoad.Count() + ")");
@@ -851,8 +851,8 @@ class CustomMission: MissionServer
 		int bikes;
 		foreach (Object bo : near)
 		{
-			if (bo.GetType().IndexOf("MolotovDebris_Motorbike") == 0)
-				bits += " " + bo.GetType().Substring(14, bo.GetType().Length() - 14) + "@" + vector.Distance(bo.GetPosition(), m_BikeAt);
+			if (bo.GetType().IndexOf("BetterExplosions_Motorbike") == 0)
+				bits += " " + bo.GetType().Substring(17, bo.GetType().Length() - 17) + "@" + vector.Distance(bo.GetPosition(), m_BikeAt);
 			if (bo.IsInherited(MotorbikeScript))
 				bikes++;
 		}
@@ -1180,7 +1180,7 @@ class CustomMission: MissionServer
 			}
 			else if (t.IndexOf("Land_Wreck_") == 0 || t.IndexOf("Land_wreck_") == 0)
 				kind = "car wreck";
-			else if (t.IndexOf("MolotovDebris_") == 0 || MolotovSunk.Cast(o))
+			else if (t.IndexOf("BetterExplosions_") == 0 || BetterExplosionsDebris.Cast(o))
 				kind = "flying debris / sunk boat";
 			else if (t == "MolotovAshes")
 				kind = "ash heap";

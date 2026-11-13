@@ -8,7 +8,7 @@ A molotov cocktail for DayZ, made from things you already find: a glass bottle, 
 [*] Don't hang on to it: 30 seconds after lighting it bursts on its own, at your feet if you're still holding it. A lit molotov can't be put away in your inventory.
 [*] The fire burns anyone standing in it, and clothing doesn't help: players lose about 10 health a second (plus shock), infected and animals 25 a second. Running straight through costs a little; standing in it is deadly.
 [*] Fuel goes up: any vehicle with fuel in it - car, boat or motorbike - caught in the fire explodes a few seconds later, like a fuel pump does. Molotov a fuel pump and it explodes too. Keep well back - the blast hurts, badly within a couple of metres. What's left burns for a minute and can set off the next fuelled vehicle beside it.
-[*] A car that goes up becomes a burnt-out wreck of the same model and colour, its cargo thrown out around it, badly damaged; a burnt wheel and the hood fly off. A boat loses its engine, blown off to splash down and sink, and its burnt hull sinks. A motorbike flies apart in pieces, leaving nothing but the fire.
+[*] A car that goes up becomes a burnt-out wreck of the same model and colour, its cargo thrown out around it, badly damaged; a burnt wheel and the hood fly off. A boat loses its engine, blown off to splash down and sink, and its burnt hull sinks. A motorbike flies apart in pieces, leaving nothing but the fire. (The explosions come from the [b]Better Explosions[/b] mod, which Molotov requires.)
 [*] An empty vehicle caught in the fire only loses engine (and fuel tank) health; left in it for the whole burn it ends up with a ruined engine.
 [*] Things burn: hay and straw, pallets, woodpiles, lumber piles, wooden sheds, outhouses, the hunters' feeding racks, feed shacks and deer stands, wooden houses, trees and shrubs catch fire and burn for a minute. Standing on or beside a burning stack or shed is deadly.
 [*] They burn down: when the fire's out they're gone - for every player, until the server restarts - leaving a burnt-out ruin (wooden houses, big sheds, the hunter's shack, straw stacks, deer stands), a charred stump (trees) or a heap of ash. Fresh ruins glow with embers and smoke for a few minutes. Loose loot inside a burning house burns with it.
@@ -23,9 +23,9 @@ A molotov cocktail for DayZ, made from things you already find: a glass bottle, 
 [b]Install[/b]
 Paths are relative to the server's install folder (the one with DayZServer_x64.exe or DayZServer), shown here as DayZServer/.
 [olist]
-[*] Put the mod's folder in the server's install folder as DayZServer/@Molotov (with its subfolders addons/, keys/ and extras/).
-[*] Add it to the server's launch parameter, after your other mods: -mod=...;@Molotov
-[*] Copy the key file DayZServer/@Molotov/keys/tarbaby.bikey into DayZServer/keys/ (next to dayz.bikey). Without it, players using the mod are kicked for unsigned files. If you already run a mod signed with tarbaby.bikey (the Hand Truck mods are), you have it already.
+[*] Put the mod's folder in the server's install folder as DayZServer/@Molotov (with its subfolders addons/, keys/ and extras/), and Better Explosions' as DayZServer/@BetterExplosions.
+[*] Add them to the server's launch parameter, after your other mods, Better Explosions first: -mod=...;@BetterExplosions;@Molotov
+[*] Copy the key file DayZServer/@Molotov/keys/tarbaby.bikey into DayZServer/keys/ (next to dayz.bikey). Without it, players using the mod are kicked for unsigned files. Better Explosions uses the same key. If you already run a mod signed with tarbaby.bikey (the Hand Truck mods are), you have it already.
 [*] Copy the loot entry DayZServer/@Molotov/extras/types_molotov.xml into a folder of your mission, for example DayZServer/mpmissions/dayzOffline.chernarusplus/molotov/types_molotov.xml (or into a folder you already use for modded types).
 [*] Register that file in your mission's DayZServer/mpmissions/dayzOffline.chernarusplus/cfgeconomycore.xml, inside <economycore>, using the folder name from step 4:
 [code]

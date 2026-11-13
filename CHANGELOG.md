@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6 - 2026-11-13
+
+- The vehicle explosions moved out into their own mod,
+  [Better Explosions](https://github.com/jasonuithol/DayZBetterExplosions), which Molotov
+  now requires (load it before Molotov). Nothing changes in game: a fuelled vehicle or
+  pump caught in the fire still goes up 3 s later - wreck, sinking boat, flying motorbike,
+  the blast that hurts - and burns for a minute where it stood. Other mods can now blow
+  vehicles up the same way without Molotov.
+- For modders: `MolotovWreck.Add` / `Fling` are now `BetterExplosionsWreck.Add` / `Fling`,
+  and the flying bits are `BetterExplosionsDebris` classes.
+
 ## 0.5 - 2026-11-10
 
 - Other mods can give more vehicles a wreck and burnt bits that fly off it, on the server

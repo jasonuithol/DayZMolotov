@@ -2,10 +2,10 @@ class CfgPatches
 {
 	class Molotov
 	{
-		units[] = {"Molotov", "MolotovFire", "MolotovInferno", "MolotovBlast", "MolotovFlames", "MolotovAshes", "MolotovSmoulder", "MolotovBoatHull", "MolotovBoatEngine", "MolotovDebris_HatchbackWheel", "MolotovDebris_HatchbackHood", "MolotovDebris_Hatchback_02_Wheel", "MolotovDebris_Hatchback_02_Hood", "MolotovDebris_CivSedanWheel", "MolotovDebris_CivSedanHood", "MolotovDebris_Sedan_02_Wheel", "MolotovDebris_Sedan_02_Hood", "MolotovDebris_Offroad_02_Wheel", "MolotovDebris_Offroad_02_Hood", "MolotovDebris_Truck_01_Wheel", "MolotovDebris_Truck_01_Hood", "MolotovDebris_Motorbike_01_Wheel_1", "MolotovDebris_Motorbike_01_Wheel_2", "MolotovDebris_Motorbike_01_Fender", "MolotovDebris_Motorbike_01_Exhaust", "MolotovDebris_Motorbike_02_Wheel_1", "MolotovDebris_Motorbike_02_Wheel_2", "MolotovDebris_Motorbike_02_FenderFront", "MolotovDebris_Motorbike_02_FenderRear", "MolotovDebris_Motorbike_02_Exhaust", "MolotovDebris_Motorbike_02_Windshield", "MolotovDebris_Motorbike_02_ShieldLeft", "MolotovDebris_Motorbike_02_ShieldRight"};
+		units[] = {"Molotov", "MolotovFire", "MolotovInferno", "MolotovBlast", "MolotovFlames", "MolotovAshes", "MolotovSmoulder"};
 		weapons[] = {};
 		requiredVersion = 0.1;
-		requiredAddons[] = {"DZ_Data", "DZ_Scripts", "DZ_Gear_Drinks", "DZ_Gear_Cooking", "DZ_Vehicles_Wheeled", "DZ_Vehicles_Singletrack", "DZ_Vehicles_Water"};
+		requiredAddons[] = {"DZ_Data", "DZ_Scripts", "DZ_Gear_Drinks", "DZ_Gear_Cooking", "BetterExplosions"};
 	};
 };
 
@@ -72,7 +72,7 @@ class CfgVehicles
 	//! A big, long fire: a burning car wreck or fuel pump
 	class MolotovInferno: MolotovFire {};
 
-	//! A fuelled car going up: the fuel pump explosion, then an inferno
+	//! The fire a fuelled vehicle leaves when it goes up (BetterExplosions does the explosion)
 	class MolotovBlast: MolotovInferno {};
 
 	//! Flames on top of a tall burning object (no damage of its own)
@@ -83,167 +83,6 @@ class CfgVehicles
 	{
 		scope = 1;
 		model = "\DZ\data\lightpoint.p3d";
-	};
-
-	//! What's left of a boat that's gone up, sinking to the bottom (MolotovSunk.c). Not
-	//! stored: gone at restart
-	class MolotovBoatHull: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\Molotov\ruins\boat_hull_burnt.p3d";
-	};
-	class MolotovBoatEngine: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\Molotov\ruins\boat_engine_burnt.p3d";
-	};
-
-	//! Bits blown off a car going up (MolotovWreck, MolotovSunk.c): its ruined wheel, and its
-	//! hood with the paint burnt off. Not stored: gone at restart
-	class MolotovDebris_HatchbackWheel: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\OffroadHatchback\proxy\nivaWheel_destroyed.p3d";
-	};
-	class MolotovDebris_HatchbackHood: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\OffroadHatchback\proxy\nivaDoors_Hood.p3d";
-		hiddenSelections[] = {"dmgZone_doors"};
-		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\offroadhatchback\data\green\niva_hood_destruct.rvmat"};
-	};
-	class MolotovDebris_Hatchback_02_Wheel: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\Hatchback_02\proxy\Hatchback_02_Wheel_ruined.p3d";
-	};
-	class MolotovDebris_Hatchback_02_Hood: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\Hatchback_02\proxy\Hatchback_02_Hood.p3d";
-		hiddenSelections[] = {"dmgZone_doors"};
-		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\hatchback_02\data\red\hatchback_02_hood_destruct.rvmat"};
-	};
-	class MolotovDebris_CivSedanWheel: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\civiliansedan\proxy\sedanwheel_destroyed.p3d";
-	};
-	class MolotovDebris_CivSedanHood: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\civilianSedan\proxy\sedanhood.p3d";
-		hiddenSelections[] = {"dmgZone_doors"};
-		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\civiliansedan\data\white\civiliansedan_destruct.rvmat"};
-	};
-	class MolotovDebris_Sedan_02_Wheel: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\Sedan_02\proxy\Sedan_02_Wheel_ruined.p3d";
-	};
-	class MolotovDebris_Sedan_02_Hood: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\Sedan_02\proxy\Sedan_02_Hood.p3d";
-		hiddenSelections[] = {"dmgZone_doors"};
-		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\sedan_02\data\yellow\sedan_02_hood_destruct.rvmat"};
-	};
-	class MolotovDebris_Offroad_02_Wheel: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\Offroad_02\proxy\Offroad_02_Wheel_destroyed.p3d";
-	};
-	class MolotovDebris_Offroad_02_Hood: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\Offroad_02\proxy\Offroad_02_Hood.p3d";
-		hiddenSelections[] = {"dmgZone_doors"};
-		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\offroad_02\data\offroad_02_base_multi_destruct.rvmat"};
-	};
-	class MolotovDebris_Truck_01_Wheel: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\Truck_01\proxy\Truck_01_Wheel_ruined.p3d";
-	};
-	class MolotovDebris_Truck_01_Hood: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\wheeled\Truck_01\proxy\Truck_01_Hood.p3d";
-		hiddenSelections[] = {"dmgZone_doors", "camo_door"};
-		hiddenSelectionsTextures[] = {"#(argb,8,8,3)color(0.08,0.07,0.06,1.0,co)", "#(argb,8,8,3)color(0.08,0.07,0.06,1.0,co)"};
-		hiddenSelectionsMaterials[] = {"dz\vehicles\wheeled\Truck_01\data\Truck_01_hood_destruct.rvmat", "dz\vehicles\wheeled\Truck_01\data\Truck_01_hood_destruct.rvmat"};
-	};
-
-	//! A motorbike flying apart (MolotovSunk.Scatter): its ruined wheels, fenders, exhaust and
-	//! shields (burnt black). Not stored: gone at restart
-	class MolotovDebris_Motorbike_01_Wheel_1: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_01\proxy\Motorbike_01_wheel_1_ruined.p3d";
-	};
-	class MolotovDebris_Motorbike_01_Wheel_2: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_01\proxy\Motorbike_01_wheel_2_ruined.p3d";
-	};
-	class MolotovDebris_Motorbike_01_Fender: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_01\proxy\Motorbike_01_fender.p3d";
-	};
-	class MolotovDebris_Motorbike_01_Exhaust: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_01\proxy\Motorbike_01_exhaust.p3d";
-	};
-	class MolotovDebris_Motorbike_02_Wheel_1: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_02\proxy\Motorbike_02_wheel_1_ruined.p3d";
-	};
-	class MolotovDebris_Motorbike_02_Wheel_2: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_02\proxy\Motorbike_02_wheel_2_ruined.p3d";
-	};
-	class MolotovDebris_Motorbike_02_FenderFront: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_02\proxy\Motorbike_02_fenderfront.p3d";
-	};
-	class MolotovDebris_Motorbike_02_FenderRear: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_02\proxy\Motorbike_02_fenderrear.p3d";
-	};
-	class MolotovDebris_Motorbike_02_Exhaust: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_02\proxy\Motorbike_02_exhaust.p3d";
-	};
-	class MolotovDebris_Motorbike_02_Windshield: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_02\proxy\Motorbike_02_windshield.p3d";
-		hiddenSelections[] = {"camo"};
-		hiddenSelectionsTextures[] = {"#(argb,8,8,3)color(0.08,0.07,0.06,1.0,co)"};
-		hiddenSelectionsMaterials[] = {"dz\vehicles\singletrack\motorbike_02\data\motorbike_02_windshield_destruct.rvmat"};
-	};
-	class MolotovDebris_Motorbike_02_ShieldLeft: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_02\proxy\Motorbike_02_shieldleft.p3d";
-		hiddenSelections[] = {"camo"};
-		hiddenSelectionsTextures[] = {"#(argb,8,8,3)color(0.08,0.07,0.06,1.0,co)"};
-		hiddenSelectionsMaterials[] = {"dz\vehicles\singletrack\motorbike_02\data\Motorbike_02_shieldleft_destruct.rvmat"};
-	};
-	class MolotovDebris_Motorbike_02_ShieldRight: HouseNoDestruct
-	{
-		scope = 1;
-		model = "\DZ\vehicles\singletrack\Motorbike_02\proxy\Motorbike_02_shieldright.p3d";
-		hiddenSelections[] = {"camo"};
-		hiddenSelectionsTextures[] = {"#(argb,8,8,3)color(0.08,0.07,0.06,1.0,co)"};
-		hiddenSelectionsMaterials[] = {"dz\vehicles\singletrack\motorbike_02\data\Motorbike_02_shieldright_destruct.rvmat"};
 	};
 
 	//! A heap of ash (and some burnt logs) where something burned away: the vanilla

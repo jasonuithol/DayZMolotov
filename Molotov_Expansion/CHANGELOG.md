@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2 - 2026-11-13
+
+Everything this add-on did moved to Better Explosions - Expansion Vehicles
+(BetterExplosions_Expansion), which it now requires; it has nothing of its own left. You
+can replace it with that add-on in -mod, or keep it: either way the Expansion vehicles
+leave their wrecks as before.
+
 ## 0.1 - 2026-11-10
 
 First release. DayZ Expansion vehicles that go up in a molotov fire leave the matching

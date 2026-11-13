@@ -4,5 +4,7 @@
 2116157322 @DayZ-Expansion-Licensed
 2291785308 @DayZ-Expansion-Core
 2291785437 @DayZ-Expansion-Vehicles
+local @BetterExplosions
+local @BetterExplosions_Expansion
 local @Molotov
 local @Molotov_Expansion
