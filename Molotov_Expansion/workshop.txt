@@ -3,6 +3,8 @@
 New servers: use Better Explosions - Expansion Vehicles instead. Servers already running this one can swap it in their -mod line for @BetterExplosions_Expansion, or keep it and add @BetterExplosions_Expansion before it:
 -mod=...;@BetterExplosions;@BetterExplosions_Expansion;@Molotov;@Molotov_Expansion
 
+[b]Admins, before the update:[/b] subscribing pulls in the required items, but a server only loads what's in its -mod line, so add @BetterExplosions and @BetterExplosions_Expansion (and their key, tarbaby.bikey) yourself. A server left on this add-on's old 0.1 won't start with Molotov 0.6; this version replaces it, and says what's missing if Better Explosions - Expansion Vehicles isn't loaded.
+
 What it gives you, through the new add-on: when a fuelled Expansion vehicle goes up, it's swapped for the matching vanilla wreck (tractor, Ikarus bus, UAZ, Land Rover, crashed Huey), burnt wheels, doors, bonnets and rotor blades fly off, and its cargo is thrown out around it. Wrecks are gone at the next restart.
 
 Requires: Molotov (0.6 or later), Better Explosions - Expansion Vehicles, DayZ-Expansion-Vehicles.
